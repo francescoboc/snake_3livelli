@@ -1,3 +1,8 @@
+# ****************** Boccardo Gagliardi @PiMlB MALGA  ***************
+#         LEARNING: input environment and learning parameters --> trained policy
+# 
+# ********************************************************************
+
 class QLearningAgent:
     def __init__(self, 
             environment, 
