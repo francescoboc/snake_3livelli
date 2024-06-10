@@ -45,7 +45,7 @@ class QLearningAgent:
 
         return reward
 
-    def train_episodic(self, real_time_plot = False):
+    def train(self, real_time_plot = False):
         # initialise exploration rate
         epsilon = self.epsilon_i
 
