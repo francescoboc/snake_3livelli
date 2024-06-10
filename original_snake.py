@@ -5,9 +5,13 @@ import random
 
 snake_speed = 15
 
+cell_size = 30
+
+PBC = True
+
 # Window size
-window_x = 500
-window_y = 500
+window_x = cell_size*30
+window_y = cell_size*30
 
 # defining colors
 black = pygame.Color(0, 0, 0)
@@ -26,18 +30,19 @@ game_window = pygame.display.set_mode((window_x, window_y))
 # FPS (frames per second) controller
 fps = pygame.time.Clock()
 
-# defining snake default position
-snake_position = [100, 50]
+# defining snake's head initial position
+snake_position = [window_x/2, window_y/2] 
 
 # defining first 4 blocks of snake body
-snake_body = [[100, 50],
-            [90, 50],
-            [80, 50],
-            [70, 50]
-            ]
+snake_body = [snake_position.copy(),
+        [snake_position[0]-cell_size, snake_position[1]],
+        [snake_position[0]-2*cell_size, snake_position[1]],
+        [snake_position[0]-3*cell_size, snake_position[1]],
+        ]
+
 # food position
-food_position = [random.randrange(1, (window_x//10)) * 10, 
-                random.randrange(1, (window_y//10)) * 10]
+food_position = [random.randrange(1, (window_x//cell_size)) * cell_size, 
+                random.randrange(1, (window_y//cell_size)) * cell_size]
 
 food_spawn = True
 
@@ -114,14 +119,23 @@ while True:
         direction = 'RIGHT'
 
     # Moving the snake
+    # print(snake_position)
     if direction == 'UP':
-        snake_position[1] -= 10
+        snake_position[1] -= cell_size
+        if snake_position[1] < 0 and PBC:
+            snake_position[1] = window_y-cell_size
     if direction == 'DOWN':
-        snake_position[1] += 10
+        snake_position[1] += cell_size
+        if snake_position[1] > window_y-cell_size and PBC:
+            snake_position[1] = 0
     if direction == 'LEFT':
-        snake_position[0] -= 10
+        snake_position[0] -= cell_size
+        if snake_position[0] < 0 and PBC:
+            snake_position[0] = window_x-cell_size
     if direction == 'RIGHT':
-        snake_position[0] += 10
+        snake_position[0] += cell_size
+        if snake_position[0] > window_x-cell_size and PBC:
+            snake_position[0] = 0
 
     # Snake body growing mechanism if food and snake collide then scores will be incremented 
     snake_body.insert(0, list(snake_position))
@@ -132,23 +146,23 @@ while True:
         snake_body.pop()
         
     if not food_spawn:
-        food_position = [random.randrange(1, (window_x//10)) * 10, 
-                        random.randrange(1, (window_y//10)) * 10]
+        food_position = [random.randrange(1, (window_x//cell_size)) * cell_size, 
+                        random.randrange(1, (window_y//cell_size)) * cell_size]
         
     food_spawn = True
     game_window.fill(black)
     
     for pos in snake_body:
-        pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
+        pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], cell_size, cell_size))
 
-    pygame.draw.rect(game_window, white, pygame.Rect(
-        food_position[0], food_position[1], 10, 10))
+    pygame.draw.rect(game_window, white, pygame.Rect(food_position[0], food_position[1], cell_size, cell_size))
 
     # Game Over conditions
-    if snake_position[0] < 0 or snake_position[0] > window_x-10:
-        game_over()
-    if snake_position[1] < 0 or snake_position[1] > window_y-10:
-        game_over()
+    if not PBC:
+        if snake_position[0] < 0 or snake_position[0] > window_x-cell_size:
+            game_over()
+        if snake_position[1] < 0 or snake_position[1] > window_y-cell_size:
+            game_over()
 
     # Touching the snake body
     for block in snake_body[1:]:
@@ -163,3 +177,5 @@ while True:
 
     # Frame Per Second /Refresh Rate
     fps.tick(snake_speed)
+
+    # time.sleep(0.5)
