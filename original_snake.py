@@ -7,11 +7,11 @@ snake_speed = 15
 
 cell_size = 30
 
-PBC = True
+periodic = True
 
 # Window size
-window_x = cell_size*30
-window_y = cell_size*30
+box_length = cell_size*30
+box_height = cell_size*30
 
 # defining colors
 black = pygame.Color(0, 0, 0)
@@ -25,13 +25,13 @@ pygame.init()
 
 # Initialise game window
 pygame.display.set_caption('Snake')
-game_window = pygame.display.set_mode((window_x, window_y))
+game_window = pygame.display.set_mode((box_length, box_height))
 
 # FPS (frames per second) controller
 fps = pygame.time.Clock()
 
 # defining snake's head initial position
-snake_position = [window_x/2, window_y/2] 
+snake_position = [box_length/2, box_height/2] 
 
 # defining first 4 blocks of snake body
 snake_body = [snake_position.copy(),
@@ -41,8 +41,8 @@ snake_body = [snake_position.copy(),
         ]
 
 # food position
-food_position = [random.randrange(1, (window_x//cell_size)) * cell_size, 
-                random.randrange(1, (window_y//cell_size)) * cell_size]
+food_position = [random.randrange(1, (box_length//cell_size)) * cell_size, 
+                random.randrange(1, (box_height//cell_size)) * cell_size]
 
 food_spawn = True
 
@@ -79,7 +79,7 @@ def game_over():
     game_over_rect = game_over_surface.get_rect()
     
     # setting position of the text
-    game_over_rect.midtop = (window_x/2, window_y/4)
+    game_over_rect.midtop = (box_length/2, box_height/4)
     
     # blit will draw the text on screen
     game_window.blit(game_over_surface, game_over_rect)
@@ -106,8 +106,8 @@ while True:
             if event.key == pygame.K_LEFT:
                 change_to = 'LEFT'
             if event.key == pygame.K_RIGHT:
-                # change_to = 'RIGHT'
                 change_to = 'RIGHT'
+    print(change_to)
 
     if change_to == 'UP' and direction != 'DOWN':
         direction = 'UP'
@@ -119,22 +119,21 @@ while True:
         direction = 'RIGHT'
 
     # Moving the snake
-    # print(snake_position)
     if direction == 'UP':
         snake_position[1] -= cell_size
-        if snake_position[1] < 0 and PBC:
-            snake_position[1] = window_y-cell_size
+        if snake_position[1] < 0 and periodic:
+            snake_position[1] = box_height-cell_size
     if direction == 'DOWN':
         snake_position[1] += cell_size
-        if snake_position[1] > window_y-cell_size and PBC:
+        if snake_position[1] > box_height-cell_size and periodic:
             snake_position[1] = 0
     if direction == 'LEFT':
         snake_position[0] -= cell_size
-        if snake_position[0] < 0 and PBC:
-            snake_position[0] = window_x-cell_size
+        if snake_position[0] < 0 and periodic:
+            snake_position[0] = box_length-cell_size
     if direction == 'RIGHT':
         snake_position[0] += cell_size
-        if snake_position[0] > window_x-cell_size and PBC:
+        if snake_position[0] > box_length-cell_size and periodic:
             snake_position[0] = 0
 
     # Snake body growing mechanism if food and snake collide then scores will be incremented 
@@ -146,8 +145,8 @@ while True:
         snake_body.pop()
         
     if not food_spawn:
-        food_position = [random.randrange(1, (window_x//cell_size)) * cell_size, 
-                        random.randrange(1, (window_y//cell_size)) * cell_size]
+        food_position = [random.randrange(1, (box_length//cell_size)) * cell_size, 
+                        random.randrange(1, (box_height//cell_size)) * cell_size]
         
     food_spawn = True
     game_window.fill(black)
@@ -158,10 +157,10 @@ while True:
     pygame.draw.rect(game_window, white, pygame.Rect(food_position[0], food_position[1], cell_size, cell_size))
 
     # Game Over conditions
-    if not PBC:
-        if snake_position[0] < 0 or snake_position[0] > window_x-cell_size:
+    if not periodic:
+        if snake_position[0] < 0 or snake_position[0] > box_length-cell_size:
             game_over()
-        if snake_position[1] < 0 or snake_position[1] > window_y-cell_size:
+        if snake_position[1] < 0 or snake_position[1] > box_height-cell_size:
             game_over()
 
     # Touching the snake body
