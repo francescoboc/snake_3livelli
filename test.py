@@ -1,4 +1,3 @@
-from tools import *
 from snake import *
 
 # snake parameters

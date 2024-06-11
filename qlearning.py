@@ -1,5 +1,5 @@
 # ****************** Boccardo Gagliardi @PiMlB MALGA  ***************
-#         LEARNING: input environment and learning parameters --> trained policy
+# LEARNING: input environment and learning parameters --> trained policy
 # 
 # ********************************************************************
 

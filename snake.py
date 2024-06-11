@@ -4,19 +4,17 @@
 # ********************************************************************
 # COMMENTS:
 #   snake.play(policy=None) --> if policy is not None play the policy
-#
-# TODO:
-# Insert pygame initializations somewhere
 
 import pygame
 import time
 import random
 
 # colors
-black = pygame.Color(0, 0, 0)
+black = pygame.Color(15, 15, 15)
 white = pygame.Color(255, 255, 255)
-red = pygame.Color(255, 0, 0)
-green = pygame.Color(0, 255, 0)
+red = pygame.Color(245, 61, 5)
+green = pygame.Color(141, 245, 5)
+light_green = pygame.Color(225, 245, 5)
 blue = pygame.Color(0, 0, 255)
 
 class Snake:
@@ -30,9 +28,60 @@ class Snake:
         # size of the simulation box
         self.box_length = cell_size*box_size
         self.box_height = cell_size*box_size
+        self.box_half_length = int(self.box_length/2)
+        self.box_half_height = int(self.box_height/2)
 
         # initialise rendering window
         self.init_render()
+
+    def get_state(self):
+        # calculate distances of food on y and x directions
+        dist_y = self.food_position[1] - self.position[1]
+        dist_x = self.food_position[0] - self.position[0]
+        
+        # determine the cardinal direction of food, considering PBC
+        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
+        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
+        
+        # determine compass directions based on the distances
+        compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
+        compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
+        
+        return compass_ns + compass_ew
+
+    # # OLD VERSION
+    #     # check proximity of food on y direction
+    #     dist_y = self.food_position[1] - self.position[1] 
+    #     # if distance is positive, the food id below the snake (south)
+    #     if dist_y > 0: 
+    #         south = True
+    #     # otherwise, it is above(north)
+    #     else: 
+    #         south = False
+    #     # if the distance is bigger than half the side of the box, invert the compass
+    #     if abs(dist_y) > self.box_half_height: 
+    #         south = not south
+    #     # if the distance is 0, the NS compass is an empty string
+    #     if dist_y == 0:
+    #         compass_ns = ''
+    #     # otherwise, assign the cardinal direction accordingly
+    #     else:
+    #         if south: compass_ns = 'S'
+    #         else: compass_ns = 'N'
+    #     # check proximity of food on x direction
+    #     dist_x = self.food_position[0] - self.position[0] 
+    #     if dist_x > 0: 
+    #         east = True
+    #     else: 
+    #         east = False
+    #     if abs(dist_x) > self.box_half_length: 
+    #         east = not east
+    #     if dist_x == 0:
+    #         compass_ew = ''
+    #     else:
+    #         if east: compass_ew = 'E'
+    #         else: compass_ew = 'W'
+
 
     def reset(self):
         # snake's head initial position
@@ -78,12 +127,15 @@ class Snake:
         
         # create the display surface object 
         self.score_surface = self.score_font.render('Score: ' + str(self.score), True, color)
+        self.compass_surface = self.score_font.render('Compass: ' + str(self.get_state()), True, color)
         
         # create a rectangular object for the text
         self.score_rect = self.score_surface.get_rect()
+        self.compass_rect = self.score_surface.get_rect()
         
         # display text
         self.game_window.blit(self.score_surface, self.score_rect)
+        self.game_window.blit(self.compass_surface, (self.box_length-125,0))
 
     # game over function
     def game_over(self):
@@ -118,6 +170,7 @@ class Snake:
 
         # game loop
         while True:
+            # TODO nelle slide di presentazione usavamo solo 3 azioni invece di 4. decidere cosa usare
             # handling key events
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -169,11 +222,14 @@ class Snake:
             self.food_spawn = True
             self.game_window.fill(black)
             
+            # TODO scala di colori per il serpente
             # draw
-            for pos in self.body:
+            pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
+            for pos in self.body[1:]:
                 pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
 
-            pygame.draw.rect(self.game_window, white, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size))
+            pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+                    border_radius=int(self.cell_size/3))
 
             # game over conditions
             if not self.periodic:
@@ -194,3 +250,4 @@ class Snake:
 
             # FPS/refresh Rate
             self.fps.tick(self.snake_speed)
+
