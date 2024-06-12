@@ -5,6 +5,9 @@
 # COMMENTS:
 #   snake.play(policy=None) --> if policy is not None play the policy
 
+#TODO Reward function
+#reset gives state 
+
 import pygame
 import time
 import random
@@ -17,8 +20,10 @@ green = pygame.Color(141, 245, 5)
 light_green = pygame.Color(225, 245, 5)
 blue = pygame.Color(0, 0, 255)
 
+directions = {'RIGHT','LEFT','UP','DOWN'}
+orientations ={'W','E','N','S','NW','SW','SE','NE'}
 class Snake:
-    def __init__(self, cell_size, box_size, snake_speed, periodic = True):
+    def __init__(self, cell_size=25, box_size=30, snake_speed=15, periodic = True):
         # constants
         self.cell_size = cell_size
         self.box_size = box_size
@@ -31,8 +36,19 @@ class Snake:
         self.box_half_length = int(self.box_length/2)
         self.box_half_height = int(self.box_height/2)
 
+
+
         # initialise rendering window
         self.init_render()
+
+        #info RL
+        self.action_size = 4
+
+        self.states = set()
+        for d in directions:
+            for o in orientations:
+                self.states.add((d,o))
+        self.state_size = len(self.states) 
 
     def get_compass(self):
         # calculate distances of food on y and x directions
@@ -49,8 +65,17 @@ class Snake:
         
         # set compass attribute
         self.compass = compass_ns + compass_ew
+    
+    def get_state(self):
+        '''
+        Returns current state
+        '''
+        self.get_compass()
+        return (self.direction, self.compass)
 
     def reset(self):
+        #TODO: Random spawning
+
         # snake's head initial position
         self.position = [self.box_length/2, self.box_height/2] 
 
@@ -62,6 +87,7 @@ class Snake:
                 ]
 
         # random food position
+        #TODO make a method (which accounts for snake body)
         self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
                         random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
 
@@ -137,6 +163,8 @@ class Snake:
         exit()
 
     def step(self, action):
+        
+        #TODO Output RL observables s,s',r,terminal 
 
         # # TODO new version with 3 actions ony (wip)
         # # define the new direction based on the current direction and action
@@ -196,12 +224,34 @@ class Snake:
         if self.position[0] == self.food_position[0] and self.position[1] == self.food_position[1]:
             self.score += 1
             self.food_spawn = False
+            reward = 1
         else:
+            reward = 0
             self.body.pop()
-            
+
+        # reward = self.get_reward()
+
+        ##### CHECK TERMINATION
+        terminated = False
+        if not self.periodic:
+            if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
+                terminated = True
+                reward = -100
+            if self.position[1] < 0 or self.position[1] > self.box_height-self.cell_size:
+                terminated = True
+                reward = -100
+
+        for block in self.body[1:]:
+            if self.position[0] == block[0] and self.position[1] == block[1]:
+                terminated = True
+                reward = -100
+        
+        next_state = self.get_state()
     # TODO nelle slide di presentazione usavamo solo 3 azioni invece di 4. decidere cosa usare
     # meglio 3 secondo me, così la policy è più semplice ed evitiamo le 180deg turns
+        return next_state, reward, terminated
     def read_keys(self):
+        #TODO MAKE EXTERNAL FUCNTION
         # handling key events
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -232,8 +282,10 @@ class Snake:
             if self.change_to == 'RIGHT' and self.direction != 'LEFT': self.direction = 'RIGHT'
 
             # update snake position
-            self.step(self.direction)
-            
+            next_state,reward,terminal = self.step(self.direction)
+            print(next_state)
+            print(reward,terminal)
+            print("-----------")
             # update compass
             self.get_compass()
 
@@ -251,6 +303,7 @@ class Snake:
             
             # TODO scala di colori per il serpente!?
             # draw
+            #Method rendering()
             pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
             for pos in self.body[1:]:
                 pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
@@ -259,14 +312,16 @@ class Snake:
                     border_radius=int(self.cell_size/3))
 
             # game over conditions
+            #MEthod check_terminal
             if not self.periodic:
-                if self.position[0] < 0 or self.position[0] > self.box_length-cell_size:
+                if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
                     self.game_over()
-                if self.position[1] < 0 or self.position[1] > box_height-cell_size:
+                if self.position[1] < 0 or self.position[1] > self.box_height-self.cell_size:
                     self.game_over()
 
             for block in self.body[1:]:
                 if self.position[0] == block[0] and self.position[1] == block[1]:
+
                     self.game_over()
 
             # display score continuously
@@ -277,4 +332,5 @@ class Snake:
 
             # FPS/refresh Rate
             self.fps.tick(self.snake_speed)
+            time.sleep(1)
 
