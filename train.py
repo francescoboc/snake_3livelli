@@ -8,6 +8,8 @@ reload(sys.modules['qlearning'])
 from snake import *
 from qlearning import *
 
+actionMode = 4
+
 # snake parameters
 cell_size = 30
 box_size = 30
@@ -19,7 +21,7 @@ food_rew = 1.0
 lose_rew = -10.0
 step_rew = -0.01
 
-game = Snake(cell_size, box_size, snake_speed, periodic, food_rew, lose_rew, step_rew)
+game = Snake(actionMode,cell_size, box_size, snake_speed, periodic, food_rew, lose_rew, step_rew)
 
 # ql agent parameters
 n_episodes = int(1e4)
