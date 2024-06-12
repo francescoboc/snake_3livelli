@@ -24,8 +24,38 @@ blue = pygame.Color(0, 0, 255)
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 compass_dirs =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
+
+
+def read_keys():
+    
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                return 'UP'
+            if event.key == pygame.K_DOWN:
+                return 'DOWN'
+            if event.key == pygame.K_LEFT:
+                return 'LEFT'
+            if event.key == pygame.K_RIGHT:
+                return 'RIGHT'
+    return "NO_TURN"
+
 class Snake:
-    def __init__(self, cell_size=25, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-100, step_rew=-0.01):
+    def __init__(self, actionMode,cell_size=25, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-100, step_rew=-0.1):
+        
+        # ACTION SPACE SELECTION
+        if actionMode == 4:
+            self.getDirectionFromActions = self._getDirection4Actions
+            # list of actions
+            self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
+            print("4 actions mode")
+        elif actionMode == 3:
+            self.getDirectionFromActions = self._getDirection3Actions
+            # list of actions
+            self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
+            print("3 actions mode")
+        else:
+            raise LookupError("Select admissible action space")
         # constants
         self.cell_size = cell_size
         self.box_size = box_size
@@ -43,11 +73,7 @@ class Snake:
         self.lose_rew = lose_rew
         self.step_rew = step_rew
 
-        # initialise rendering window
-        self.init_render()
-
-        # list of actions
-        self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
+        
 
         # list of states
         self.states = []
@@ -55,6 +81,11 @@ class Snake:
             for c in compass_dirs:
                 self.states.append((d,c))
         self.state_size = len(self.states) 
+
+        self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
+        self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
+
+        self.reset()
 
     def get_compass(self):
         # calculate distances of food on y and x directions
@@ -78,6 +109,37 @@ class Snake:
         '''
         self.get_compass()
         return (self.direction, self.compass)
+    
+
+    def initialize_body(self,direction):
+        #TODO random initial direction
+        #TODO: Random spawning
+        # self.position = [self.box_length/2, self.box_height/2] 
+        # self.body = [self.position.copy(),
+        #         [self.position[0]-self.cell_size, self.position[1]],
+        #         [self.position[0]-2*self.cell_size, self.position[1]],
+        #         [self.position[0]-3*self.cell_size, self.position[1]],
+        #         ]
+        # snake's head initial position
+        head = [self.box_length/2, self.box_height/2] 
+        if direction=="RIGHT":
+            body = [head.copy(),[head[0]-self.cell_size, head[1]],
+                    [head[0]-2*self.cell_size, head[1]],
+                    [head[0]-3*self.cell_size, head[1]],
+                    ]
+        else:
+            raise KeyError("Not implemented")
+        return head, body
+
+
+    def spawnFood(self):
+        #TODO avoid intersection with body 
+        self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
+                              random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
+        if self.food_position in self.body:
+            self.spawnFood()
+        self.food_spawn = True
+
 
     def reset(self):
         # snake's head initial position
@@ -91,15 +153,7 @@ class Snake:
                 ]
 
         # random food position
-        #TODO make a method (which accounts for snake body)
-        self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
-                        random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
-        # HACK TO PREVENT EMPTY COMPASS
-        if self.food_position == self.position:
-            self.food_position = [0,0]
-
-        # food flag
-        self.food_spawn = True
+        self.spawnFood()
 
         # reset snake direction towards RIGHT
         self.direction = 'RIGHT'
@@ -107,21 +161,17 @@ class Snake:
         # reset initial score
         self.score = 0
 
-        # reset compass
-        self.get_compass()
-
-        # encode state
-        self.state = (self.direction, self.compass)
 
         return self.get_state()
 
     def init_render(self):
         # initialise pygame 
         pygame.init()
-
+        
         # initialise game window
         pygame.display.set_caption('Snake')
         self.game_window = pygame.display.set_mode((self.box_length, self.box_height))
+        
 
         # FPS (frames per second) controller
         self.fps = pygame.time.Clock()
@@ -170,50 +220,11 @@ class Snake:
         # exit python
         sys.exit()
 
-    def step(self, action):
-        
-        #TODO Output RL observables s,s',r,terminal 
+    
 
-        # # TODO new version with 3 actions ony (wip)
-        # # define the new direction based on the current direction and action
-        # directions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
-        # current_index = directions.index(self.direction)
 
-        # if action == 'LEFT':
-        #     new_index = (current_index - 1) % 4
-        # elif action == 'RIGHT':
-        #     new_index = (current_index + 1) % 4
-        # else:  # NO_TURN
-        #     new_index = current_index
 
-        # self.direction = directions[new_index]
-
-        # # move the snake based on the new direction
-        # if self.direction == 'UP':
-        #     self.position[1] -= self.cell_size
-        #     if self.position[1] < 0 and self.periodic:
-        #         self.position[1] = self.box_height - self.cell_size
-        # elif self.direction == 'DOWN':
-        #     self.position[1] += self.cell_size
-        #     if self.position[1] >= self.box_height and self.periodic:
-        #         self.position[1] = 0
-        # elif self.direction == 'LEFT':
-        #     self.position[0] -= self.cell_size
-        #     if self.position[0] < 0 and self.periodic:
-        #         self.position[0] = self.box_length - self.cell_size
-        # elif self.direction == 'RIGHT':
-        #     self.position[0] += self.cell_size
-        #     if self.position[0] >= self.box_length and self.periodic:
-        #         self.position[0] = 0
-
-        # TODO this is to avoid 180deg turns -> with 3 actions this should be useless
-        if action == 'UP' and self.direction != 'DOWN': self.direction = 'UP'
-        if action == 'DOWN' and self.direction != 'UP': self.direction = 'DOWN'
-        if action == 'LEFT' and self.direction != 'RIGHT': self.direction = 'LEFT'
-        if action == 'RIGHT' and self.direction != 'LEFT': self.direction = 'RIGHT'
-
-        # TODO old version with 4 actions (working)
-        # move the snake
+    def advance(self):
         if self.direction == 'UP':
             self.position[1] -= self.cell_size
             if self.position[1] < 0 and self.periodic:
@@ -230,118 +241,149 @@ class Snake:
             self.position[0] += self.cell_size
             if self.position[0] > self.box_length-self.cell_size and self.periodic:
                 self.position[0] = 0
+            
 
         # snake body growing mechanism 
         # if food and snake collide then scores will be incremented 
         self.body.insert(0, list(self.position))
+
         if self.position[0] == self.food_position[0] and self.position[1] == self.food_position[1]:
             self.score += 1
             self.food_spawn = False
-            reward = self.food_rew
         else:
             self.body.pop()
-            reward = self.step_rew
+        
+        return not self.food_spawn
 
-        ##### CHECK TERMINATION
+    
+    def isTerminal(self):
         terminated = False
         if not self.periodic:
             if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
                 terminated = True
-                reward = self.lose_rew
             if self.position[1] < 0 or self.position[1] > self.box_height-self.cell_size:
                 terminated = True
-                reward = self.lose_rew
 
         for block in self.body[1:]:
             if self.position[0] == block[0] and self.position[1] == block[1]:
                 terminated = True
-                reward = self.lose_rew
+                
+        return terminated
+    
+
+    def _getDirection4Actions(self, action):
+        '''
+        Avoids self intersection
+        '''
+        direction = self.direction
+        if action == "NO_TURN":
+            pass
+        else:
+            if action == 'UP' and self.direction != 'DOWN': direction = 'UP'
+            if action == 'DOWN' and self.direction != 'UP': direction = 'DOWN'
+            if action == 'LEFT' and self.direction != 'RIGHT': direction = 'LEFT'
+            if action == 'RIGHT' and self.direction != 'LEFT': direction = 'RIGHT'
+        
+        return direction
+
+    def _getDirection3Actions(self, action):
+        '''
+        Can only turn or doi nothing. No self intersection to be prevented.
+        '''
+        
+        direction = self.direction
+        if action == "NO_TURN" or action == 'UP' or action == 'DOWN':
+            pass
+        else:
+            current_index = self._directionIndexMap[self.direction]
+            if action == 'LEFT':
+                new_index = (current_index + 1) % 4
+            elif action == 'RIGHT':
+                new_index = (current_index - 1) % 4
+            direction = self._indexDirectionMap[new_index]
+        return direction
+
+    def step(self, action):
+        
+
+        self.direction = self.getDirectionFromActions(action)
+
+        ########### DISPLACEMENT #################################
+        gotFood = self.advance()
+        #####
+        
+        ##### CHECK TERMINATION + GET REWARDS
+
+        terminated = self.isTerminal()
+        if gotFood:
+            reward = self.food_rew
+        elif terminated:
+            reward = self.lose_rew
+        else:
+            reward = self.step_rew
         
         # if food was captured, spawn a new one
-        if not self.food_spawn:
-            self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
-                            random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
-            
-            self.food_spawn = True
-
-        # HACK TO PREVENT EMPTY COMPASS
-        if self.food_position == self.position:
-            self.food_position = [0,0]
+        if self.food_spawn == False:
+            self.spawnFood()
 
         next_state = self.get_state()
 
-        # TODO nelle slide di presentazione usavamo solo 3 azioni invece di 4. decidere cosa usare
-        # meglio 3 secondo me, così la policy è più semplice ed evitiamo le 180deg turns
+        
         return next_state, reward, terminated
 
 
-    def read_keys(self):
-        #TODO MAKE EXTERNAL FUCNTION
-        # handling key events
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    return 'UP'
-                if event.key == pygame.K_DOWN:
-                    return 'DOWN'
-                if event.key == pygame.K_LEFT:
-                    return 'LEFT'
-                if event.key == pygame.K_RIGHT:
-                    return 'RIGHT'
-
+    
         # # if nothing was pressed, return 'NO_TURN' action
         # return 'NO_TURN'
 
+    def render(self):
+
+        
+        self.game_window.fill(black)
+        pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
+        for pos in self.body[1:]:
+            pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
+
+        pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+                border_radius=int(self.cell_size/3))
+        
+        # display score continuously
+        self.show_score(white, 'arial', 20)
+        # FPS/refresh Rate
+        self.fps.tick(self.snake_speed)
+        # refresh game screen
+        pygame.display.update()
+
+        
+
+
     def play(self, policy = None):
+        
+        self.init_render()
+        self.init_render()
         # reset the game
         state = self.reset()
-
         # game loop
         while True:
             if policy is None:
                 # check if a key has been pressed
-                action = self.read_keys()
+                action = read_keys()
             else:
                 action = policy[state]
+                # print(state,action)
                 # action = self.actions[action]
 
             # update snake position
             next_state,reward,terminal = self.step(action)
-
-            self.game_window.fill(black)
             
-            # TODO scala di colori per il serpente!?
-            # draw
-            #Method render()
-            pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
-            for pos in self.body[1:]:
-                pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
-
-            pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-                    border_radius=int(self.cell_size/3))
-
-            # game over conditions
-            #MEthod check_terminal
-            if not self.periodic:
-                if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
-                    self.game_over()
-                if self.position[1] < 0 or self.position[1] > self.box_height-self.cell_size:
-                    self.game_over()
-
-            for block in self.body[1:]:
-                if self.position[0] == block[0] and self.position[1] == block[1]:
-
-                    self.game_over()
+            self.render()
+            
+            if terminal:
+                self.game_over()
 
             # shift state
             state = next_state
 
-            # display score continuously
-            self.show_score(white, 'arial', 20)
-
-            # refresh game screen
-            pygame.display.update()
-
-            # FPS/refresh Rate
-            self.fps.tick(self.snake_speed)
+            
+            
 
