@@ -41,32 +41,6 @@ class QLearningAgent:
     def q_norm(self, q1, q2):
         return (sum(np.sum((q1[key]-q2[key])**2 for key in q1)))
 
-    def play(self, policy, test_steps, real_time_plot = True):
-        # reset timestep counter
-        step = 0
-
-        # initialize environment and get initial state
-        # state = self.environment.reset(real_time_plot)
-        state = self.environment.reset()
-
-        # run episode
-        while True:
-            # select action based on policy
-            action = policy[state]
-
-            # take action, observe reward and next state
-            # state, reward, terminated = self.environment.update(action, real_time_plot)
-            state, reward, terminated = self.environment.step(action)
-
-            # if we reached a terminal state (capture) or reached max number of test steps, end the episode 
-            if terminated or step == test_steps:
-                break
-
-            # increase timestep counter
-            step += 1
-
-        return reward
-
     def train(self, real_time_plot = False):
         # initialise the random number generator
         seed = random.randrange(sys.maxsize)
@@ -78,32 +52,33 @@ class QLearningAgent:
         # calculate episodic reduction for linear decay of exploration rate
         reduction = (self.epsilon_i - self.epsilon_f)/self.n_episodes
 
-        for epi in tqdm(range(self.n_episodes), ascii=' █'):
+        iterator = tqdm(range(self.n_episodes), ascii=' █') 
+        for epi in iterator:
         # for epi in range(self.n_episodes):
 
             # reset timestep counter
             step = 0
 
             # initialize environment and get initial state
-            # state = self.environment.reset(real_time_plot)
             state = self.environment.reset()
+
+            score_list = []
 
             # run episode
             while True:
                 # select a random action using behavior policy
-                action = self.random_action(state, epsilon)
+                action_id = self.random_action_id(state, epsilon)
 
                 # take action, observe reward and next state
-                # next_state, reward, terminated = self.environment.step(action, real_time_plot)
-                action_label = self.environment.actions[action]
-                next_state, reward, terminated = self.environment.step(action_label)
+                action = self.environment.actions[action_id]
+                next_state, reward, terminated = self.environment.step(action)
 
                 # Q-Learning update rule 
                 # off-policy: Q is updated on the optimal policy, different from the behavior one 
                 # -> we consider only the action that maximizes Q
-                old_q = self.q_table[state][action] 
-                self.q_table[state][action] +=  self.learning_rate*(reward + self.discount_factor*max(self.q_table[next_state]) - self.q_table[state][action])
-                new_q = self.q_table[state][action] 
+                old_q = self.q_table[state][action_id] 
+                self.q_table[state][action_id] +=  self.learning_rate*(reward + self.discount_factor*max(self.q_table[next_state]) - self.q_table[state][action_id])
+                new_q = self.q_table[state][action_id] 
                 # delta = max(delta, abs(old_q-new_q))
 
                 # shift state
@@ -114,27 +89,31 @@ class QLearningAgent:
 
                 # if a terminal state was reached, break and use q-learning update rule with Q(s', .) = 0 
                 if terminated:
-                    self.q_table[state][action] +=  self.learning_rate*(reward - self.q_table[state][action])
+                    self.q_table[state][action_id] +=  self.learning_rate*(reward - self.q_table[state][action_id])
+                    score_list.append(self.environment.score)
                     break
 
             # decay epsilon linearly
             epsilon -= reduction
+
+            if epi % 100 == 0:
+                iterator.set_postfix({'Avg score' : np.mean(score_list[-10:])})
 
         # extract optimal policy from q table
         pi_star = self.extract_policy_from_q()
 
         return self.q_table, pi_star
 
-    def random_action(self, state, epsilon):
+    def random_action_id(self, state, epsilon):
         # with probability epsilon choose a random action (exploration)
         if rng.random() < epsilon:
             return rng.choice(self.enumerated_actions)
         # with probability 1-epsilon choose an optimal action (exploitation)
         else:
             max_q = max(self.q_table[state])
-            optimal_actions = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
-            if len(optimal_actions) == 1: return optimal_actions[0]
-            else: return rng.choice(optimal_actions)
+            optimal_action_ids = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
+            if len(optimal_action_ids) == 1: return optimal_action_ids[0]
+            else: return rng.choice(optimal_action_ids)
 
         # TODO this does not work because at t=0 all actions have the same value = 0!
         # # find best actions for the current state based on q
@@ -156,9 +135,9 @@ class QLearningAgent:
         # determine best action(s)
         for state in self.environment.states:
             max_q = max(self.q_table[state])
-            optimal_actions = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
+            optimal_action_ids = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
             # assign the best action to policy pi_star
-            if len(optimal_actions) == 1: pi_star[state] = self.environment.actions[optimal_actions[0]]
-            else: pi_star[state] = self.environment.actions[rng.choice(optimal_actions)]
+            if len(optimal_action_ids) == 1: pi_star[state] = self.environment.actions[optimal_action_ids[0]]
+            else: pi_star[state] = self.environment.actions[rng.choice(optimal_action_ids)]
 
         return pi_star
