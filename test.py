@@ -9,10 +9,11 @@ from snake import *
 snake_speed = 15
 periodic = True
 
-# stateMode = 'simple'
-stateMode = 'body_length'
-
 actionMode = 4
 
-game = Snake(actionMode, stateMode, snake_speed=snake_speed)
-game.play()
+stateMode = 'simple'
+# stateMode = 'body_length'
+# stateMode = 'tail_compass'
+
+snake = Snake(actionMode, stateMode, snake_speed=snake_speed)
+snake.play()

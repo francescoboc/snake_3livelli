@@ -45,8 +45,15 @@ class Snake:
                 for c in compass_dirs:
                     for b in bodyFractions:
                         self.states.append((d,c,b))
+        elif stateMode=='tail_compass':
+            self.get_state = self._get_state_bodyPosition
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for t in compass_dirs:
+                        self.states.append((d,c,t))
         else:
             raise LookupError('Invalid stateMode')
+        self.states.append('Term')
 
         # constants
         self.cell_size = cell_size
@@ -75,8 +82,8 @@ class Snake:
         print(f'Action mode = {actionMode}')
         print(f'State mode = {stateMode}')
 
-    #TODO: random spawning
-    def initialize_body(self,direction, size, random=False):
+    # TODO random spawning
+    def initialize_body(self, direction, size, random=False):
         # head position
         head = [self.box_length/2, self.box_height/2] 
 
@@ -99,12 +106,12 @@ class Snake:
         return len(self.body)
 
     # reset the environment and output the corresponding state
-    def reset(self, direction='RIGHT', size=4):
+    def reset(self):
         # snake's head initial position
-        self.position,self.body = self.initialize_body(direction, size)
+        self.position, self.body = self.initialize_body(init_direction, init_size)
 
         # reset snake direction towards RIGHT
-        self.direction = direction
+        self.direction = init_direction
 
         # sparn food in a random position
         self.spawnFood()
@@ -132,9 +139,26 @@ class Snake:
         # set compass attribute
         self.compass = compass_ns + compass_ew
     
+    def get_compassTail(self):
+        # calculate distances of tail on y and x directions
+        tail_position = self.body[-1]
+        dist_y = tail_position[1] - self.position[1]
+        dist_x = tail_position[0] - self.position[0]
+        
+        # determine the cardinal direction of food, considering PBC
+        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
+        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
+        
+        # determine compass directions based on the distances
+        compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
+        compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
+        
+        # set compass attribute
+        self.tail_compass = compass_ns + compass_ew
+
     # calculate body length as fraction of the box length
     def get_bodyLengthFraction(self):
-        return int(self.body_size/self._boxFraction) 
+        self.bodyLengthF = int(self.body_size/self._boxFraction) 
 
     def get_state_simple(self):
         self.get_compass()
@@ -142,8 +166,13 @@ class Snake:
 
     def _get_state_bodyL(self):
         self.get_compass()
-        return (self.direction, self.compass, self.get_bodyLengthFraction())
+        self.get_bodyLengthFraction()
+        return (self.direction, self.compass, self.bodyLengthF)
 
+    def _get_state_bodyPosition(self):
+        self.get_compass()
+        self.get_compassTail()
+        return (self.direction, self.compass, self.tail_compass)
 
     ################################## LOCOMOTION ##############################
 
@@ -246,6 +275,7 @@ class Snake:
         gotFood = self.advance()
         
         terminated = self.isTerminal()
+
         if gotFood:
             reward = self.food_rew
         elif terminated:
@@ -258,14 +288,17 @@ class Snake:
             self.spawnFood()
 
         # get reading of new state
-        next_state = self.get_state()
+        if not terminated:
+            next_state = self.get_state()
+        else:
+            next_state = 'Term'
 
         return next_state, reward, terminated
 
     # play with a given policy or against a user
     def play(self, policy = None):
-        self.init_render(font, fontSize)
-        self.init_render(font, fontSize)
+        self.init_render()
+        self.init_render()
 
         # reset the game
         state = self.reset()
@@ -293,7 +326,7 @@ class Snake:
     ############################## RENDERING METHODS #######################
 
     # initialize rendering environment (pygame)
-    def init_render(self, font, size):
+    def init_render(self):
         # initialise pygame 
         pygame.init()
         
@@ -305,7 +338,7 @@ class Snake:
         self.fps = pygame.time.Clock()
 
         # create main font object 
-        self.main_font = pygame.font.SysFont(font, size)
+        self.main_font = pygame.font.SysFont(font, font_size)
 
     # display score onscreen
     def showScore(self, color):
@@ -325,11 +358,14 @@ class Snake:
         self.game_window.blit(self.compass_surface, (self.box_length-125,0))
 
         if self.stateMode=='body_length':
-            bodyLengthF = self.get_bodyLengthFraction()
-            self.bodyInfo_surface = self.main_font.render('BodyF: ' + str((bodyLengthF, self.body_size)), True, 'green')
+            self.bodyInfo_surface = self.main_font.render('BodyF: ' + str(self.bodyLengthF), True, 'green')
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
+        elif self.stateMode=='tail_compass':
+            self.bodyInfo_surface = self.main_font.render('Tail comp: ' + str(self.tail_compass), True, 'green')
+            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
+            self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
     def gameOver(self):
         # create font object my_font
