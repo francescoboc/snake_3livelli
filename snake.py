@@ -13,6 +13,7 @@ import time
 import random
 import sys
 
+
 # colors
 black = pygame.Color(15, 15, 15)
 white = pygame.Color(255, 255, 255)
@@ -27,7 +28,6 @@ compass_dirs =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
 
 def read_keys():
-    
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
@@ -40,8 +40,12 @@ def read_keys():
                 return 'RIGHT'
     return "NO_TURN"
 
+
+
+
+
 class Snake:
-    def __init__(self, actionMode,cell_size=25, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-100, step_rew=-0.1):
+    def __init__(self, actionMode,cell_size=25, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-100, step_rew=-0.1,considerBodyLength=False):
         
         # ACTION SPACE SELECTION
         if actionMode == 4:
@@ -73,19 +77,73 @@ class Snake:
         self.lose_rew = lose_rew
         self.step_rew = step_rew
 
-        
 
         # list of states
         self.states = []
-        for d in head_dirs:
-            for c in compass_dirs:
-                self.states.append((d,c))
+        self.considerBodyL = considerBodyLength
+        
+        if considerBodyLength:
+            fractions = 4
+            print("** States enriched with body length info **")
+            self._boxFraction = self.box_size/fractions
+            self.get_state = self._get_state_bodyL
+            bodyFractions = [b for b in range(fractions**2)]
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for b in bodyFractions:
+                        self.states.append((d,c,b))
+        else:   
+            self.get_state = self._get_state_default
+            for d in head_dirs:
+                for c in compass_dirs:
+                    self.states.append((d,c))
+
+
         self.state_size = len(self.states) 
+
+
 
         self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
         self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
 
         self.reset()
+
+
+    def initialize_body(self,direction):
+        #TODO random initial direction
+        #TODO: Random spawning
+        head = [self.box_length/2, self.box_height/2] 
+        if direction=="RIGHT":
+            body = [head.copy(),[head[0]-self.cell_size, head[1]],
+                    [head[0]-2*self.cell_size, head[1]],
+                    [head[0]-3*self.cell_size, head[1]],
+                    ]
+        else:
+            raise KeyError("Not implemented")
+        return head, body
+    
+    @property
+    def body_size(self):
+        return len(self.body)
+
+
+    def reset(self):
+        # snake's head initial position
+        direction = "RIGHT"
+        size = 4
+        self.position,self.body = self.initialize_body(direction=direction)
+        # random food position
+        self.spawnFood()
+
+        # reset snake direction towards RIGHT
+        self.direction = direction
+
+        # reset initial score
+        self.score = 0
+
+
+        return self.get_state()
+
 
     def get_compass(self):
         # calculate distances of food on y and x directions
@@ -103,66 +161,27 @@ class Snake:
         # set compass attribute
         self.compass = compass_ns + compass_ew
     
-    def get_state(self):
+    def get_bodyLengthFraction(self):
         '''
-        Returns current state
+        body length as box fraction.
         '''
+        output = int(self.body_size/self._boxFraction) 
+        return output
+
+
+    def _get_state_default(self):
         self.get_compass()
         return (self.direction, self.compass)
+
+    def _get_state_bodyL(self):
+        self.get_compass()
+        return (self.direction, self.compass,self.get_bodyLengthFraction())
     
 
-    def initialize_body(self,direction):
-        #TODO random initial direction
-        #TODO: Random spawning
-        # self.position = [self.box_length/2, self.box_height/2] 
-        # self.body = [self.position.copy(),
-        #         [self.position[0]-self.cell_size, self.position[1]],
-        #         [self.position[0]-2*self.cell_size, self.position[1]],
-        #         [self.position[0]-3*self.cell_size, self.position[1]],
-        #         ]
-        # snake's head initial position
-        head = [self.box_length/2, self.box_height/2] 
-        if direction=="RIGHT":
-            body = [head.copy(),[head[0]-self.cell_size, head[1]],
-                    [head[0]-2*self.cell_size, head[1]],
-                    [head[0]-3*self.cell_size, head[1]],
-                    ]
-        else:
-            raise KeyError("Not implemented")
-        return head, body
 
-
-    def spawnFood(self):
-        #TODO avoid intersection with body 
-        self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
-                              random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
-        if self.food_position in self.body:
-            self.spawnFood()
-        self.food_spawn = True
-
-
-    def reset(self):
-        # snake's head initial position
-        self.position = [self.box_length/2, self.box_height/2] 
-
-        # first 4 blocks of snake body (head + 3 body blocks)
-        self.body = [self.position.copy(),
-                [self.position[0]-self.cell_size, self.position[1]],
-                [self.position[0]-2*self.cell_size, self.position[1]],
-                [self.position[0]-3*self.cell_size, self.position[1]],
-                ]
-
-        # random food position
-        self.spawnFood()
-
-        # reset snake direction towards RIGHT
-        self.direction = 'RIGHT'
-
-        # reset initial score
-        self.score = 0
-
-
-        return self.get_state()
+    
+    #################
+    ############################## * RENDERING METHODS * #######################
 
     def init_render(self):
         # initialise pygame 
@@ -177,14 +196,19 @@ class Snake:
         self.fps = pygame.time.Clock()
 
     # function to display score
-    def show_score(self, color, font, size):
+    def show_score(self, color, font, size,bodyLenghtF = None):
         # creating font object score_font
         self.score_font = pygame.font.SysFont(font, size)
         
         # create the display surface object 
         self.score_surface = self.score_font.render('Score: ' + str(self.score), True, color)
         self.compass_surface = self.score_font.render('Compass: ' + str(self.compass), True, color)
-        
+
+        #extra body length
+        if bodyLenghtF is not None:
+            self.bodyInfo_surface = self.score_font.render('BodyF: ' + str((bodyLenghtF,self.body_size)), True, 'green')
+            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
+            self.game_window.blit(self.bodyInfo_surface ,(0,self.box_length-25))
         # create a rectangular object for the text
         self.score_rect = self.score_surface.get_rect()
         self.compass_rect = self.score_surface.get_rect()
@@ -220,8 +244,37 @@ class Snake:
         # exit python
         sys.exit()
 
-    
+    def render(self,bodyLength = None):
 
+        
+        self.game_window.fill(black)
+        pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
+        for pos in self.body[1:]:
+            pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
+
+        pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+                border_radius=int(self.cell_size/3))
+        
+        # display score continuously
+        self.show_score(white, 'arial', 20,bodyLength)
+        # FPS/refresh Rate
+        self.fps.tick(self.snake_speed)
+        # refresh game screen
+        pygame.display.update()
+    
+#############################
+
+################################## LOCOMOTION ##############################
+
+    def spawnFood(self):
+        '''
+        Spawn food at random locations avoiding overlap with snake body
+        '''
+        self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
+                              random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
+        if self.food_position in self.body:
+            self.spawnFood()
+        self.food_spawn = True
 
 
     def advance(self):
@@ -336,25 +389,12 @@ class Snake:
         # # if nothing was pressed, return 'NO_TURN' action
         # return 'NO_TURN'
 
-    def render(self):
+    
 
-        
-        self.game_window.fill(black)
-        pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
-        for pos in self.body[1:]:
-            pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
 
-        pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-                border_radius=int(self.cell_size/3))
-        
-        # display score continuously
-        self.show_score(white, 'arial', 20)
-        # FPS/refresh Rate
-        self.fps.tick(self.snake_speed)
-        # refresh game screen
-        pygame.display.update()
 
-        
+###############################################
+# ############################  
 
 
     def play(self, policy = None):
@@ -376,7 +416,10 @@ class Snake:
             # update snake position
             next_state,reward,terminal = self.step(action)
             
-            self.render()
+            #Test
+            bodyLengthF = self.get_bodyLengthFraction()
+
+            self.render(bodyLengthF)
             
             if terminal:
                 self.game_over()
