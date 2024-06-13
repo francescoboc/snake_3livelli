@@ -81,11 +81,10 @@ class Snake:
         # list of states
         self.states = []
         self.considerBodyL = considerBodyLength
-        
+        fractions = 4
+        self._boxFraction = self.box_size/fractions
         if considerBodyLength:
-            fractions = 4
             print("** States enriched with body length info **")
-            self._boxFraction = self.box_size/fractions
             self.get_state = self._get_state_bodyL
             bodyFractions = [b for b in range(fractions**2)]
             for d in head_dirs:
@@ -109,10 +108,17 @@ class Snake:
         self.reset()
 
 
-    def initialize_body(self,direction):
+    def initialize_body(self,direction,size=4):
         #TODO random initial direction
         #TODO: Random spawning
         head = [self.box_length/2, self.box_height/2] 
+        # body = [head.copy()]
+        # index = 0 
+        # increment = -1
+        # for i in range(size):
+
+        #     body.append()
+        
         if direction=="RIGHT":
             body = [head.copy(),[head[0]-self.cell_size, head[1]],
                     [head[0]-2*self.cell_size, head[1]],
