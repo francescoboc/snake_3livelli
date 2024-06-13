@@ -15,11 +15,17 @@ green = pygame.Color(141, 245, 5)
 light_green = pygame.Color(225, 245, 5)
 blue = pygame.Color(0, 0, 255)
 
+# head directions, compass directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 compass_dirs =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 
+# font parameters for on screen info
 font = 'arial'
-fontSize = 20
+font_size = 20
+
+# initial direction and size of the snake
+init_direction = 'RIGHT' 
+init_size = 30
 
 # read keys pressed by the user
 def read_keys():
