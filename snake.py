@@ -108,24 +108,27 @@ class Snake:
         self.reset()
 
 
-    def initialize_body(self,direction,size=4):
-        #TODO random initial direction
+    def initialize_body(self,direction,size,random=False):
         #TODO: Random spawning
         head = [self.box_length/2, self.box_height/2] 
-        # body = [head.copy()]
-        # index = 0 
-        # increment = -1
-        # for i in range(size):
+        body=[]
+        if direction == "RIGHT":
+            index = 0 
+            increment = -1
+        elif direction == "LEFT":
+            index = 0 
+            increment = 1
+        elif direction == "UP":
+            index = 1
+            increment = 1
+        elif direction == "DOWN":
+            index = 1
+            increment = -1
 
-        #     body.append()
-        
-        if direction=="RIGHT":
-            body = [head.copy(),[head[0]-self.cell_size, head[1]],
-                    [head[0]-2*self.cell_size, head[1]],
-                    [head[0]-3*self.cell_size, head[1]],
-                    ]
-        else:
-            raise KeyError("Not implemented")
+        for i in range(size):
+            bodypart = head.copy()
+            bodypart[index]+= increment*i * self.cell_size
+            body.append(bodypart.copy())
         return head, body
     
     @property
@@ -133,11 +136,9 @@ class Snake:
         return len(self.body)
 
 
-    def reset(self):
+    def reset(self,direction="RIGHT",size=4):
         # snake's head initial position
-        direction = "RIGHT"
-        size = 4
-        self.position,self.body = self.initialize_body(direction=direction)
+        self.position,self.body = self.initialize_body(direction,size)
         # random food position
         self.spawnFood()
 
