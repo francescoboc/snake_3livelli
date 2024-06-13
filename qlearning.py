@@ -3,9 +3,7 @@
 # 
 # ********************************************************************
 
-import numpy as np
-import random, sys, signal
-from tqdm import tqdm
+from tools import *
 
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
@@ -32,8 +30,9 @@ class QLearningAgent:
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
 
+        # extract number of actions and create a list of action indexes
         self.action_size = len(self.environment.actions)
-        self.enumerated_actions = np.arange(self.action_size)
+        self.action_indexes = np.arange(self.action_size)
 
         # initialise q table as a dictionary
         self.q_table = {state: np.zeros(self.action_size) for state in self.environment.states}
@@ -62,8 +61,6 @@ class QLearningAgent:
             # initialize environment and get initial state
             state = self.environment.reset()
 
-            score_list = []
-
             # run episode
             while True:
                 # select a random action using behavior policy
@@ -90,14 +87,10 @@ class QLearningAgent:
                 # if a terminal state was reached, break and use q-learning update rule with Q(s', .) = 0 
                 if terminated:
                     self.q_table[state][action_id] +=  self.learning_rate*(reward - self.q_table[state][action_id])
-                    score_list.append(self.environment.score)
                     break
 
             # decay epsilon linearly
             epsilon -= reduction
-
-            if epi % 100 == 0:
-                iterator.set_postfix({'Avg score' : np.mean(score_list[-10:])})
 
         # extract optimal policy from q table
         pi_star = self.extract_policy_from_q()
@@ -107,7 +100,7 @@ class QLearningAgent:
     def random_action_id(self, state, epsilon):
         # with probability epsilon choose a random action (exploration)
         if rng.random() < epsilon:
-            return rng.choice(self.enumerated_actions)
+            return rng.choice(self.action_indexes)
         # with probability 1-epsilon choose an optimal action (exploitation)
         else:
             max_q = max(self.q_table[state])
