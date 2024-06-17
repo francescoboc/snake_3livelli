@@ -11,50 +11,11 @@ reload(sys.modules['tools'])
 from tools import *
 
 class Snake:
-    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.01):
+    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.1):
+        # initialize states and actions
+        self.initialize_states(stateMode)
+        self.initialize_actions(actionMode)
         
-        # ACTION SPACE SELECTION
-        if actionMode == 4:
-            self.getDirectionFromActions = self._get_direction_4_actions
-            # list of actions
-            self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
-        elif actionMode == 3:
-            self.getDirectionFromActions = self._get_direction_3_actions
-            # list of actions
-            self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
-            # create maps to cycle through actions
-            self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
-            self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
-        else:
-            raise LookupError('Invalid actionMode')
-
-        # STATE SPACE SELECTION
-        # build list of states
-        self.states = []
-        if stateMode=='simple':
-            self.get_state = self.get_state_simple
-            for d in head_dirs:
-                for c in compass_dirs:
-                    self.states.append((d,c))
-        elif stateMode=='body_length':
-            fractions = 4
-            self._boxFraction = box_size/fractions
-            self.get_state = self.get_state_body_length
-            bodyFractions = [b for b in range(fractions**2)]
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for b in bodyFractions:
-                        self.states.append((d,c,b))
-        elif stateMode=='tail_compass':
-            self.get_state = self.get_state_body_position
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for t in compass_dirs:
-                        self.states.append((d,c,t))
-        else:
-            raise LookupError('Invalid stateMode')
-        self.states.append('Term')
-
         # constants
         self.cell_size = cell_size
         self.box_size = box_size
@@ -81,6 +42,48 @@ class Snake:
         # show info in terminal
         print(f'Action mode = {actionMode}')
         print(f'State mode = {stateMode}')
+
+    # buil list of actions
+    def initialize_actions(self, actionMode):
+        if actionMode == 4:
+            self.get_direction_from_actions = self._get_direction_4_actions
+            self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
+        elif actionMode == 3:
+            self.get_direction_from_actions = self._get_direction_3_actions
+            # list of actions
+            self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
+            # create maps to cycle through actions
+            self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
+            self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
+        else:
+            raise LookupError('Invalid actionMode')
+
+    # build list of states
+    def initialize_states(self, stateMode):
+        self.states = []
+        if stateMode=='simple':
+            self.get_state = self.get_state_simple
+            for d in head_dirs:
+                for c in compass_dirs:
+                    self.states.append((d,c))
+        elif stateMode=='body_length':
+            fractions = 4
+            self._boxFraction = box_size/fractions
+            self.get_state = self.get_state_body_length
+            bodyFractions = [b for b in range(fractions**2)]
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for b in bodyFractions:
+                        self.states.append((d,c,b))
+        elif stateMode=='tail_compass':
+            self.get_state = self.get_state_body_position
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for t in compass_dirs:
+                        self.states.append((d,c,t))
+        else:
+            raise LookupError('Invalid stateMode')
+        self.states.append('Term')
 
     # TODO random spawning
     def initialize_body(self, direction, size, random=False):
@@ -270,7 +273,7 @@ class Snake:
 
     # do one timestep
     def step(self, action):
-        self.direction = self.getDirectionFromActions(action)
+        self.direction = self.get_direction_from_actions(action)
 
         gotFood = self.advance()
         
