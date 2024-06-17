@@ -8,6 +8,10 @@ reload(sys.modules['qlearning'])
 from snake import *
 from qlearning import *
 
+# seed to initialize the RNG
+seed = None
+seed_rng(seed)
+
 # snake parameters
 cell_size = 30
 box_size = 30

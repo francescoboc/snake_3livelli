@@ -1,18 +1,12 @@
 import pygame
-import numpy as np
 import random, sys, signal, time
-from tqdm import tqdm
 
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
 signal.signal(signal.SIGINT, lambda x, y: sys.exit())
 
-# global variable to call the random number generator (RNG)
-global rng 
-
-# initialize the RNG
-seed = None
-initialise_rng(seed)
+# create the random number generator object
+rng = random.Random()
 
 # colors
 black = pygame.Color(15, 15, 15)
@@ -50,9 +44,8 @@ def read_keys():
 
 
 # initialise the RNG with a given seed or a random one
-def initialise_rng(seed=None):
+def seed_rng(seed=None):
     if seed is None:
         seed = random.randrange(sys.maxsize)
-    rng = random.Random(seed)
+    rng.seed(seed)
     print(f'RNG seed = {seed}')
-

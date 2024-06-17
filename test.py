@@ -5,6 +5,10 @@ from importlib import reload
 reload(sys.modules['snake'])
 from snake import *
 
+# seed to initialize the RNG
+seed = None
+seed_rng(seed)
+
 # snake parameters
 snake_speed = 15
 periodic = True
