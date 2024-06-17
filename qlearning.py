@@ -9,10 +9,6 @@ from tools import *
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
 signal.signal(signal.SIGINT, lambda x, y: sys.exit())
 
-def initialise_rng(seed):
-    global rng 
-    rng = random.Random(seed)
-
 class QLearningAgent:
     def __init__(self, 
             environment, 
@@ -35,15 +31,15 @@ class QLearningAgent:
         self.action_indexes = np.arange(self.action_size)
 
         # initialise q table as a dictionary
-        self.q_table = {state: np.zeros(self.action_size) for state in self.environment.states}
+        self.q_table = {state: np.array([rng.random() for a in range(self.action_size)]) for state in self.environment.states}
+
+        # set Q(Term, .) = 0 
+        self.q_table['Term'] = np.zeros(self.action_size)
     
     def q_norm(self, q1, q2):
         return (sum(np.sum((q1[key]-q2[key])**2 for key in q1)))
 
-    def train(self, real_time_plot = False):
-        # initialise the random number generator
-        seed = random.randrange(sys.maxsize)
-        initialise_rng(seed)
+    def train(self):
 
         # initialise exploration rate
         epsilon = self.epsilon_i
@@ -84,9 +80,8 @@ class QLearningAgent:
                 # increase timestep counter
                 step += 1
 
-                # if a terminal state was reached, break and use q-learning update rule with Q(s', .) = 0 
+                # if a terminal state was reached, break 
                 if terminated:
-                    self.q_table[state][action_id] +=  self.learning_rate*(reward - self.q_table[state][action_id])
                     break
 
             # decay epsilon linearly
@@ -132,5 +127,6 @@ class QLearningAgent:
             # assign the best action to policy pi_star
             if len(optimal_action_ids) == 1: pi_star[state] = self.environment.actions[optimal_action_ids[0]]
             else: pi_star[state] = self.environment.actions[rng.choice(optimal_action_ids)]
+            pi_star['Term'] = None
 
         return pi_star

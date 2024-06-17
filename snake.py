@@ -11,7 +11,7 @@ reload(sys.modules['tools'])
 from tools import *
 
 class Snake:
-    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.1):
+    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.02):
         # initialize states and actions
         self.initialize_states(stateMode)
         self.initialize_actions(actionMode)
@@ -183,8 +183,8 @@ class Snake:
         '''
         Spawn food at random locations avoiding overlap with snake body
         '''
-        self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
-                              random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
+        self.food_position = [rng.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
+                              rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
             self.spawn_food()
         self.food_spawn = True
@@ -269,7 +269,7 @@ class Snake:
                 new_index = (current_index - 1) % 4
             direction = self._indexDirectionMap[new_index]
 
-        return direction
+        return direction 
 
     # do one timestep
     def step(self, action):

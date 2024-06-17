@@ -23,12 +23,12 @@ stateMode = 'simple'
 # rewards
 food_rew = 1.0
 lose_rew = -10.0
-step_rew = -0.01
+step_rew = -0.02
 
 snake = Snake(actionMode, stateMode, cell_size, box_size, snake_speed, periodic, food_rew, lose_rew, step_rew)
 
 # ql agent parameters
-n_episodes = int(5e3)
+n_episodes = int(1e4)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05

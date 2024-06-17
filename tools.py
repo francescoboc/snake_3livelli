@@ -7,6 +7,13 @@ from tqdm import tqdm
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
 signal.signal(signal.SIGINT, lambda x, y: sys.exit())
 
+# global variable to call the random number generator (RNG)
+global rng 
+
+# initialize the RNG
+seed = None
+initialise_rng(seed)
+
 # colors
 black = pygame.Color(15, 15, 15)
 white = pygame.Color(255, 255, 255)
@@ -40,3 +47,12 @@ def read_keys():
             if event.key == pygame.K_RIGHT:
                 return 'RIGHT'
     return "NO_TURN"
+
+
+# initialise the RNG with a given seed or a random one
+def initialise_rng(seed=None):
+    if seed is None:
+        seed = random.randrange(sys.maxsize)
+    rng = random.Random(seed)
+    print(f'RNG seed = {seed}')
+
