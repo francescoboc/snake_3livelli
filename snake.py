@@ -361,7 +361,7 @@ class Snake:
         self.game_window.blit(self.compass_surface, (self.box_length-125,0))
 
         if self.stateMode=='body_length':
-            self.bodyInfo_surface = self.main_font.render('BodyF: ' + str(self.bodyLengthF), True, 'green')
+            self.bodyInfo_surface = self.main_font.render('body: score,length : ' + str(self.bodyLengthF)+", "+str(self.body_size), True, 'green')
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
@@ -397,7 +397,7 @@ class Snake:
         sys.exit()
 
     # render the current frame
-    def render(self, bodyLength = None):
+    def render(self):
         # clear the screen (fill with black)
         self.game_window.fill(black)
 
