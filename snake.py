@@ -67,8 +67,8 @@ class Snake:
                 for c in compass_dirs:
                     self.states.append((d,c))
         elif stateMode=='body_length':
-            fractions = 4
-            self._boxFraction = box_size/fractions
+            fractions = 3
+            self._boxFraction = self.box_size/fractions
             self.get_state = self.get_state_body_length
             bodyFractions = [b for b in range(fractions**2)]
             for d in head_dirs:
