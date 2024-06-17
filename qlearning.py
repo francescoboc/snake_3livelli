@@ -101,18 +101,18 @@ class QLearningAgent:
             if len(optimal_action_ids) == 1: return optimal_action_ids[0]
             else: return rng.choice(optimal_action_ids)
 
-        # TODO this does not work because at t=0 all actions have the same value = 0!
-        # # find best actions for the current state based on q
+        # # TODO this is extremely slow... why?
+        # # only choose among non-optimal actions
         # max_q = max(self.q_table[state])
-        # optimal_actions = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
+        # optimal_actions_ids = [a for a in range(self.action_size) if self.q_table[state][a] == max_q]
         # # with probability 1-epsilon choose an optimal action (exploitation)
         # if rng.random() < 1-epsilon:
-        #     if len(optimal_actions) == 1: return optimal_actions[0]
-        #     else: return rng.choice(optimal_actions)
+        #     if len(optimal_actions_ids) == 1: return optimal_actions_ids[0]
+        #     else: return rng.choice(optimal_actions_ids)
         # # with probability epsilon choose a random non-optimal action (exploration)
         # else:
-        #     non_optimal_actions = np.delete(self.environment.actions, optimal_actions)
-        #     return rng.choice(non_optimal_actions)
+        #     non_optimal_actions_ids = np.delete(self.action_indexes, optimal_actions_ids)
+        #     return rng.choice(non_optimal_actions_ids)
 
     def extract_policy_from_q(self):
         # initialise dictionary for policy
