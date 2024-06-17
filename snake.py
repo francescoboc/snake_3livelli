@@ -39,14 +39,14 @@ class Snake:
         elif stateMode=='body_length':
             fractions = 4
             self._boxFraction = box_size/fractions
-            self.get_state = self._get_state_bodyL
+            self.get_state = self.get_state_body_length
             bodyFractions = [b for b in range(fractions**2)]
             for d in head_dirs:
                 for c in compass_dirs:
                     for b in bodyFractions:
                         self.states.append((d,c,b))
         elif stateMode=='tail_compass':
-            self.get_state = self._get_state_bodyPosition
+            self.get_state = self.get_state_body_position
             for d in head_dirs:
                 for c in compass_dirs:
                     for t in compass_dirs:
@@ -114,7 +114,7 @@ class Snake:
         self.direction = init_direction
 
         # sparn food in a random position
-        self.spawnFood()
+        self.spawn_food()
 
         # reset initial score
         self.score = 0
@@ -139,7 +139,7 @@ class Snake:
         # set compass attribute
         self.compass = compass_ns + compass_ew
     
-    def get_compassTail(self):
+    def get_compass_tail(self):
         # calculate distances of tail on y and x directions
         tail_position = self.body[-1]
         dist_y = tail_position[1] - self.position[1]
@@ -157,33 +157,33 @@ class Snake:
         self.tail_compass = compass_ns + compass_ew
 
     # calculate body length as fraction of the box length
-    def get_bodyLengthFraction(self):
+    def get_body_length_fraction(self):
         self.bodyLengthF = int(self.body_size/self._boxFraction) 
 
     def get_state_simple(self):
         self.get_compass()
         return (self.direction, self.compass)
 
-    def _get_state_bodyL(self):
+    def get_state_body_length(self):
         self.get_compass()
-        self.get_bodyLengthFraction()
+        self.get_body_length_fraction()
         return (self.direction, self.compass, self.bodyLengthF)
 
-    def _get_state_bodyPosition(self):
+    def get_state_body_position(self):
         self.get_compass()
-        self.get_compassTail()
+        self.get_compass_tail()
         return (self.direction, self.compass, self.tail_compass)
 
     ################################## LOCOMOTION ##############################
 
-    def spawnFood(self):
+    def spawn_food(self):
         '''
         Spawn food at random locations avoiding overlap with snake body
         '''
         self.food_position = [random.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
                               random.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
-            self.spawnFood()
+            self.spawn_food()
         self.food_spawn = True
 
     # update snake head and body positions
@@ -221,7 +221,7 @@ class Snake:
         return not self.food_spawn
 
     # check if a terminal state was reached
-    def isTerminal(self):
+    def is_terminal(self):
         terminated = False
         if not self.periodic:
             if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
@@ -274,7 +274,7 @@ class Snake:
 
         gotFood = self.advance()
         
-        terminated = self.isTerminal()
+        terminated = self.is_terminal()
 
         if gotFood:
             reward = self.food_rew
@@ -285,7 +285,7 @@ class Snake:
         
         # if food was captured, spawn a new one
         if self.food_spawn == False:
-            self.spawnFood()
+            self.spawn_food()
 
         # get reading of new state
         if not terminated:
@@ -317,7 +317,7 @@ class Snake:
             self.render()
             
             if terminal:
-                self.gameOver()
+                self.game_over()
 
             # shift state
             state = next_state
@@ -341,7 +341,7 @@ class Snake:
         self.main_font = pygame.font.SysFont(font, font_size)
 
     # display score onscreen
-    def showScore(self, color):
+    def show_score(self, color):
         # create the display surface object 
         self.score_surface = self.main_font.render('Score: ' + str(self.score), True, color)
 
@@ -352,7 +352,7 @@ class Snake:
         self.game_window.blit(self.score_surface, self.score_rect)
 
     # display info about state onscreen
-    def showStateInfo(self, color):
+    def show_state_info(self, color):
         self.compass_surface = self.main_font.render('Compass: ' + str(self.compass), True, color)
         self.compass_rect = self.score_surface.get_rect()
         self.game_window.blit(self.compass_surface, (self.box_length-125,0))
@@ -367,7 +367,7 @@ class Snake:
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
-    def gameOver(self):
+    def game_over(self):
         # create font object my_font
         self.my_font = pygame.font.SysFont('arial', 50)
         
@@ -410,8 +410,8 @@ class Snake:
                 border_radius=int(self.cell_size/3))
         
         # display score and state info
-        self.showScore(white)
-        self.showStateInfo(white)
+        self.show_score(white)
+        self.show_state_info(white)
 
         # FPS/refresh Rate
         self.fps.tick(self.snake_speed)
