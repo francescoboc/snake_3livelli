@@ -3,11 +3,9 @@
 # 
 # ********************************************************************
 
-from tools import *
-
-# hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
-# https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
-signal.signal(signal.SIGINT, lambda x, y: sys.exit())
+from tqdm import tqdm
+import numpy as np
+from tools import rng
 
 class QLearningAgent:
     def __init__(self, 
