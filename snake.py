@@ -15,11 +15,11 @@ class Snake:
         
         # ACTION SPACE SELECTION
         if actionMode == 4:
-            self.getDirectionFromActions = self._getDirection4Actions
+            self.getDirectionFromActions = self._get_direction_4_actions
             # list of actions
             self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
         elif actionMode == 3:
-            self.getDirectionFromActions = self._getDirection3Actions
+            self.getDirectionFromActions = self._get_direction_3_actions
             # list of actions
             self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
             # create maps to cycle through actions
@@ -235,7 +235,7 @@ class Snake:
                 
         return terminated
     
-    def _getDirection4Actions(self, action):
+    def _get_direction_4_actions(self, action):
         '''
         Avoids self intersection
         '''
@@ -250,7 +250,7 @@ class Snake:
         
         return direction
 
-    def _getDirection3Actions(self, action):
+    def _get_direction_3_actions(self, action):
         '''
         Can only turn or do nothing. No self intersection to be prevented.
         '''
