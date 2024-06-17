@@ -19,9 +19,11 @@ snake_speed = 15
 periodic = True
 
 actionMode = 4
+randomInitBodyLength = True
+randomInitDirection = True
 
-stateMode = 'simple'
-# stateMode = 'body_length'
+# stateMode = 'simple'
+stateMode = 'body_length'
 # stateMode = 'tail_compass'
 
 # rewards
@@ -29,10 +31,10 @@ food_rew = 1.0
 lose_rew = -10.0
 step_rew = -0.02
 
-snake = Snake(actionMode, stateMode, cell_size, box_size, snake_speed, periodic, food_rew, lose_rew, step_rew)
+snake = Snake(actionMode, stateMode, cell_size, box_size, snake_speed, periodic, food_rew, lose_rew, step_rew,randomInitBodyLength,randomInitDirection)
 
 # ql agent parameters
-n_episodes = int(1e4)
+n_episodes = int(1e5)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05
@@ -44,4 +46,4 @@ q_star, pi_star = agent.train()
 
 snake.play(pi_star)
 
-# np.save(f'policies/pi_{cell_size}_{actionMode}_{stateMode}_{n_episodes}.npy', pi_star)
+# np.save(f'policies/pi_{box_size}_{actionMode}_{stateMode}_{n_episodes}.npy', pi_star)

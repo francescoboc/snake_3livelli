@@ -11,16 +11,19 @@ reload(sys.modules['tools'])
 from tools import *
 
 class Snake:
-    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.02):
-        # initialize states and actions
-        self.initialize_states(stateMode)
-        self.initialize_actions(actionMode)
+    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.02,randomInitialBodyLength = False,randomInitialDirection = False):
         
+        self.randomInitialBodyLength=randomInitialBodyLength
+        self.randomInitialDirection = randomInitialDirection
         # constants
         self.cell_size = cell_size
         self.box_size = box_size
         self.snake_speed = snake_speed
         self.periodic = periodic
+
+        # initialize states and actions
+        self.initialize_states(stateMode)
+        self.initialize_actions(actionMode)
 
         # calculate size of the simulation box
         self.box_length = cell_size*box_size
@@ -42,6 +45,8 @@ class Snake:
         # show info in terminal
         print(f'Action mode = {actionMode}')
         print(f'State mode = {stateMode}')
+        print(f'Random initial body length = {randomInitialBodyLength}')
+        print(f'Random initial direction = {randomInitialDirection}')
 
     # buil list of actions
     def initialize_actions(self, actionMode):
@@ -89,7 +94,6 @@ class Snake:
     def initialize_body(self, direction, size, random=False):
         # head position
         head = [self.box_length/2, self.box_height/2] 
-
         # create  body parts
         if direction == "RIGHT": index, increment = 0, -1
         elif direction == "LEFT": index, increment = 0, 1
@@ -110,11 +114,19 @@ class Snake:
 
     # reset the environment and output the corresponding state
     def reset(self):
+        if self.randomInitialBodyLength:
+            size = rng.randrange(init_size,int(self.box_size/2))
+        else:
+            size = init_size
+        if self.randomInitialDirection:
+            direction = rng.choice(head_dirs)
+        else:
+            direction = init_direction
         # snake's head initial position
-        self.position, self.body = self.initialize_body(init_direction, init_size)
+        self.position, self.body = self.initialize_body(direction, size)
 
         # reset snake direction towards RIGHT
-        self.direction = init_direction
+        self.direction = direction
 
         # sparn food in a random position
         self.spawn_food()
