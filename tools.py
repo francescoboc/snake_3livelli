@@ -12,17 +12,13 @@ rng = random.Random()
 black = pygame.Color(15, 15, 15)
 white = pygame.Color(255, 255, 255)
 red = pygame.Color(245, 61, 5)
-green = pygame.Color(141, 245, 5)
-light_green = pygame.Color(225, 245, 5)
+green = pygame.Color(14, 171, 0)
 blue = pygame.Color(0, 0, 255)
+yellow = pygame.Color(252, 252, 25)
 
 # head directions, compass directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 compass_dirs =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
-
-# font parameters for printing info on screen
-font = 'arial'
-font_size = 20
 
 # initial direction and size of the snake
 init_direction = 'RIGHT' 

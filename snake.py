@@ -11,19 +11,25 @@ reload(sys.modules['tools'])
 from tools import *
 
 class Snake:
-    def __init__(self, actionMode=4, stateMode='simple', cell_size=30, box_size=30, snake_speed=15, periodic=True, food_rew=1, lose_rew=-10, step_rew=-0.02,randomInitialBodyLength = False,randomInitialDirection = False):
+    def __init__(self, 
+            actionMode=4, 
+            stateMode='simple', 
+            cell_size=30, 
+            box_size=30, 
+            snake_speed=15, 
+            periodic=True, 
+            food_rew=1, 
+            lose_rew=-10, 
+            step_rew=-0.02,
+            randomInitialBodyLength=False,
+            randomInitialDirection=False
+            ):
         
-        self.randomInitialBodyLength=randomInitialBodyLength
-        self.randomInitialDirection = randomInitialDirection
         # constants
         self.cell_size = cell_size
         self.box_size = box_size
         self.snake_speed = snake_speed
         self.periodic = periodic
-
-        # initialize states and actions
-        self.initialize_states(stateMode)
-        self.initialize_actions(actionMode)
 
         # calculate size of the simulation box
         self.box_length = cell_size*box_size
@@ -35,6 +41,14 @@ class Snake:
         self.food_rew = food_rew
         self.lose_rew = lose_rew
         self.step_rew = step_rew
+
+        # flags to randomize the initial configuration of the snake
+        self.randomInitialBodyLength = randomInitialBodyLength
+        self.randomInitialDirection = randomInitialDirection
+
+        # initialize states and actions
+        self.initialize_states(stateMode)
+        self.initialize_actions(actionMode)
 
         # state mode 
         self.stateMode = stateMode
@@ -283,7 +297,7 @@ class Snake:
 
         return direction 
 
-    # do one timestep
+    # advance one timestep
     def step(self, action):
         self.direction = self.get_direction_from_actions(action)
 
@@ -329,10 +343,10 @@ class Snake:
             # update snake position
             next_state, reward, terminal = self.step(action)
             
-            self.render()
-            
             if terminal:
                 self.game_over()
+
+            self.render()
 
             # shift state
             state = next_state
@@ -353,7 +367,48 @@ class Snake:
         self.fps = pygame.time.Clock()
 
         # create main font object 
-        self.main_font = pygame.font.SysFont(font, font_size)
+        self.main_font = pygame.font.SysFont('arial', 20)
+
+        # create fotn used in the game over screen
+        self.game_over_font = pygame.font.SysFont('arial', 50)
+
+        # radii to draw the rounded edges 
+        self.food_radius = self.cell_size // 3
+        snake_radius = self.cell_size // 5
+
+        self.direction_corners = {
+            'UP': (snake_radius, snake_radius, 0, 0),
+            'RIGHT': (0, snake_radius, 0, snake_radius),
+            'DOWN': (0, 0, snake_radius, snake_radius),
+            'LEFT': (snake_radius, 0, snake_radius, 0)
+        }
+
+        # eyes parameters
+        self.eye_radius = self.cell_size // 6
+        self.eye_inner_radius = self.cell_size // 10
+        self.eye_offset = self.cell_size // 4
+
+        # initial and final color of the snake
+        self.start_color = yellow
+        self.end_color = green
+
+        # color of the head
+        self.head_color = yellow
+
+    def get_eye_positions(self):
+        # Dictionary to map directions to eye positions
+        if self.direction == 'UP': 
+            return  (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
+                (self.body[0][0] + self.cell_size - self.eye_offset, self.body[0][1] + self.eye_offset)
+        elif self.direction == 'RIGHT': 
+            return (self.body[0][0] + self.cell_size - self.eye_offset, self.body[0][1] + self.eye_offset),\
+                (self.body[0][0] + self.cell_size - self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
+        elif self.direction == 'DOWN': 
+            return (self.body[0][0] + self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset),\
+                (self.body[0][0] + self.cell_size - self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
+        elif self.direction == 'LEFT': 
+            return (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
+                (self.body[0][0] + self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
 
     # display score onscreen
     def show_score(self, color):
@@ -373,7 +428,7 @@ class Snake:
         self.game_window.blit(self.compass_surface, (self.box_length-125,0))
 
         if self.stateMode=='body_length':
-            self.bodyInfo_surface = self.main_font.render('body: fraction, length : ' + str(self.bodyLengthF)+", "+str(self.body_size), True, 'green')
+            self.bodyInfo_surface = self.main_font.render('body: frac, len = ' + str(self.bodyLengthF)+", "+str(self.body_size), True, 'green')
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
@@ -383,11 +438,20 @@ class Snake:
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
     def game_over(self):
-        # create font object my_font
-        self.my_font = pygame.font.SysFont('arial', 50)
-        
+        # create a semi-transparent overlay with the size of the game window
+        overlay = pygame.Surface((self.box_length, self.box_height))
+
+        # set transparency level (0 fully transparent, 255 fully opaque) 
+        overlay.set_alpha(60) 
+
+        # fill the surface with red color
+        overlay.fill(red)
+
+        # blit the overlay onto the game window
+        self.game_window.blit(overlay, (0, 0))
+            
         # create a text surface on which text will be drawn
-        self.game_over_surface = self.my_font.render('Your score is: ' + str(self.score), True, red)
+        self.game_over_surface = self.game_over_font.render('Your score is: ' + str(self.score), True, red)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
@@ -395,18 +459,33 @@ class Snake:
         # set position of the text
         self.game_over_rect.midtop = (self.box_length/2, self.box_height/4)
         
-        # blit will draw the text on screen
+        # blit the text on screen
         self.game_window.blit(self.game_over_surface, self.game_over_rect)
         pygame.display.flip()
         
-        # after 2 seconds
-        time.sleep(2)
-        
+        # # wait
+        # time.sleep(3)
+
+        # wait for user input to exit
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
+                        and event.key == pygame.K_ESCAPE):
+                    pygame.quit()
+                    sys.exit()
+            
         # deactivate pygame library
         pygame.quit()
 
         # exit python
         sys.exit()
+
+    def interpolate_color(self, factor):
+        """Interpolate between two colors."""
+        return tuple([
+            int(self.start_color[i] + (self.end_color[i] - self.start_color[i]) * factor)
+            for i in range(3)
+        ])
 
     # render the current frame
     def render(self):
@@ -414,15 +493,33 @@ class Snake:
         self.game_window.fill(black)
 
         # draw head 
-        pygame.draw.rect(self.game_window, light_green, pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size))
+        headRect = pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size)
+        tl, tr, bl, br = self.direction_corners[self.direction]
+        pygame.draw.rect(self.game_window, self.head_color, headRect, border_top_left_radius=tl, 
+                border_top_right_radius=tr, border_bottom_left_radius=bl, border_bottom_right_radius=br)
 
-        # draw rest of the body
-        for pos in self.body[1:]:
-            pygame.draw.rect(self.game_window, green, pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
+        # get the eye positions based on the current direction
+        eye1_center, eye2_center = self.get_eye_positions()
+        pygame.draw.circle(self.game_window, white, eye1_center, self.eye_radius)
+        pygame.draw.circle(self.game_window, white, eye2_center, self.eye_radius)
+        pygame.draw.circle(self.game_window, black, eye1_center, self.eye_inner_radius)
+        pygame.draw.circle(self.game_window, black, eye2_center, self.eye_inner_radius)
+
+        # # draw rest of the body
+        # for pos in self.body[1:]:
+        #     bodyRect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
+        #     pygame.draw.rect(self.game_window, green, bodyRect)
+
+        # draw rest of the body with gradient colors
+        for i, pos in enumerate(self.body[1:], start=1):
+            factor = i / (self.body_size - 1)  # factor for interpolation
+            color = self.interpolate_color(factor)
+            bodyRect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
+            pygame.draw.rect(self.game_window, color, bodyRect)
 
         # draw food
-        pygame.draw.rect(self.game_window, red, pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-                border_radius=int(self.cell_size/3))
+        foodRect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+        pygame.draw.rect(self.game_window, red, foodRect, border_radius=self.food_radius)
         
         # display score and state info
         self.show_score(white)

@@ -10,14 +10,27 @@ seed = None
 seed_rng(seed)
 
 # snake parameters
+cell_size = 30
+box_size = 30
 snake_speed = 15
 periodic = True
 
-actionMode = 4
+# snake parameters
+snake_speed = 15
+periodic = True
+
+actionMode = 3
 
 stateMode = 'simple'
 # stateMode = 'body_length'
 # stateMode = 'tail_compass'
 
-snake = Snake(actionMode, stateMode, snake_speed=snake_speed)
-snake.play()
+snake = Snake(actionMode, stateMode, cell_size, snake_speed=snake_speed, randomInitialBodyLength=True)
+
+pi_star = None
+
+# import numpy as np
+# n_episodes = int(1e7)
+# pi_star = np.load(f'policies/pi_{box_size}_{actionMode}_{stateMode}_{n_episodes:.0e}.npy', allow_pickle=True).item()
+
+snake.play(pi_star)

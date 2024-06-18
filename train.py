@@ -15,7 +15,7 @@ seed_rng(seed)
 # snake parameters
 cell_size = 30
 box_size = 30
-snake_speed = 15
+snake_speed = 10
 periodic = True
 
 actionMode = 4
