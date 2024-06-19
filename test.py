@@ -15,22 +15,19 @@ box_size = 30
 snake_speed = 15
 periodic = True
 
-# snake parameters
-snake_speed = 15
-periodic = True
+action_mode = 3
 
-actionMode = 3
+# stateMode = 'simple'
+# state_mode = 'body_length'
+# state_mode = 'tail_compass'
+state_mode = 'com_compass'
 
-stateMode = 'simple'
-# stateMode = 'body_length'
-# stateMode = 'tail_compass'
-
-snake = Snake(actionMode, stateMode, cell_size, snake_speed=snake_speed, randomInitialBodyLength=True)
+snake = Snake(action_mode, state_mode, cell_size, snake_speed=snake_speed, rand_init_body_length=True)
 
 pi_star = None
 
 # import numpy as np
 # n_episodes = int(1e7)
-# pi_star = np.load(f'policies/pi_{box_size}_{actionMode}_{stateMode}_{n_episodes:.0e}.npy', allow_pickle=True).item()
+# pi_star = np.load(f'policies/pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}.npy', allow_pickle=True).item()
 
 snake.play(pi_star)

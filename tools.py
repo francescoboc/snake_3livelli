@@ -19,6 +19,7 @@ yellow = pygame.Color(252, 252, 25)
 # head directions, compass directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']
 compass_dirs =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+compass_dirs_empty =['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', '']
 
 # initial direction and size of the snake
 init_direction = 'RIGHT' 

@@ -4,6 +4,7 @@
 # ********************************************************************
 
 from tools import *
+import numpy as np
 
 # in case we need to reload the library
 from importlib import reload
@@ -12,8 +13,8 @@ from tools import *
 
 class Snake:
     def __init__(self, 
-            actionMode=4, 
-            stateMode='simple', 
+            action_mode=4, 
+            state_mode='simple', 
             cell_size=30, 
             box_size=30, 
             snake_speed=15, 
@@ -21,8 +22,8 @@ class Snake:
             food_rew=1, 
             lose_rew=-10, 
             step_rew=-0.02,
-            randomInitialBodyLength=False,
-            randomInitialDirection=False
+            rand_init_body_length=False,
+            rand_init_direction=False
             ):
         
         # constants
@@ -43,31 +44,31 @@ class Snake:
         self.step_rew = step_rew
 
         # flags to randomize the initial configuration of the snake
-        self.randomInitialBodyLength = randomInitialBodyLength
-        self.randomInitialDirection = randomInitialDirection
+        self.rand_init_body_length = rand_init_body_length
+        self.rand_init_direction = rand_init_direction
 
         # initialize states and actions
-        self.initialize_states(stateMode)
-        self.initialize_actions(actionMode)
+        self.initialize_states(state_mode)
+        self.initialize_actions(action_mode)
 
         # state mode 
-        self.stateMode = stateMode
+        self.state_mode = state_mode
 
         # reset the environment
         self.reset()
 
         # show info in terminal
-        print(f'Action mode = {actionMode}')
-        print(f'State mode = {stateMode}')
-        print(f'Random initial body length = {randomInitialBodyLength}')
-        print(f'Random initial direction = {randomInitialDirection}')
+        print(f'Action mode = {action_mode}')
+        print(f'State mode = {state_mode}')
+        print(f'Random initial body length = {rand_init_body_length}')
+        print(f'Random initial direction = {rand_init_direction}')
 
     # buil list of actions
-    def initialize_actions(self, actionMode):
-        if actionMode == 4:
+    def initialize_actions(self, action_mode):
+        if action_mode == 4:
             self.get_direction_from_actions = self._get_direction_4_actions
             self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT']
-        elif actionMode == 3:
+        elif action_mode == 3:
             self.get_direction_from_actions = self._get_direction_3_actions
             # list of actions
             self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
@@ -75,33 +76,39 @@ class Snake:
             self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
             self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
         else:
-            raise LookupError('Invalid actionMode')
+            raise LookupError('Invalid action_mode')
 
     # build list of states
-    def initialize_states(self, stateMode):
+    def initialize_states(self, state_mode):
         self.states = []
-        if stateMode=='simple':
+        if state_mode=='simple':
             self.get_state = self.get_state_simple
             for d in head_dirs:
                 for c in compass_dirs:
                     self.states.append((d,c))
-        elif stateMode=='body_length':
+        elif state_mode=='body_length':
             fractions = 3
-            self._boxFraction = self.box_size/fractions
+            self._box_fraction = self.box_size/fractions
             self.get_state = self.get_state_body_length
             bodyFractions = [b for b in range(fractions**2)]
             for d in head_dirs:
                 for c in compass_dirs:
                     for b in bodyFractions:
                         self.states.append((d,c,b))
-        elif stateMode=='tail_compass':
-            self.get_state = self.get_state_body_position
+        elif state_mode=='tail_compass':
+            self.get_state = self.get_state_tail_compass
             for d in head_dirs:
                 for c in compass_dirs:
                     for t in compass_dirs:
                         self.states.append((d,c,t))
+        elif state_mode=='com_compass':
+            self.get_state = self.get_state_com_compass
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for t in compass_dirs_empty:
+                        self.states.append((d,c,t))
         else:
-            raise LookupError('Invalid stateMode')
+            raise LookupError('Invalid state_mode')
         self.states.append('Term')
 
     # TODO random spawning
@@ -128,11 +135,11 @@ class Snake:
 
     # reset the environment and output the corresponding state
     def reset(self):
-        if self.randomInitialBodyLength:
+        if self.rand_init_body_length:
             size = rng.randrange(init_size,int(self.box_size/2))
         else:
             size = init_size
-        if self.randomInitialDirection:
+        if self.rand_init_direction:
             direction = rng.choice(head_dirs)
         else:
             direction = init_direction
@@ -185,9 +192,26 @@ class Snake:
         # set compass attribute
         self.tail_compass = compass_ns + compass_ew
 
+    def get_compass_com(self):
+        # calculate distances of tail on y and x directions
+        com_position = self.calculate_com_with_pbc()
+        dist_y = com_position[1] - self.position[1]
+        dist_x = com_position[0] - self.position[0]
+        
+        # determine the cardinal direction of food, considering PBC
+        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
+        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
+        
+        # determine compass directions based on the distances
+        compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
+        compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
+        
+        # set compass attribute
+        self.com_compass = compass_ns + compass_ew
+
     # calculate body length as fraction of the box length
     def get_body_length_fraction(self):
-        self.bodyLengthF = int(self.body_size/self._boxFraction) 
+        self.body_length_fraction = int(self.body_size/self._box_fraction) 
 
     def get_state_simple(self):
         self.get_compass()
@@ -196,12 +220,17 @@ class Snake:
     def get_state_body_length(self):
         self.get_compass()
         self.get_body_length_fraction()
-        return (self.direction, self.compass, self.bodyLengthF)
+        return (self.direction, self.compass, self.body_length_fraction)
 
-    def get_state_body_position(self):
+    def get_state_tail_compass(self):
         self.get_compass()
         self.get_compass_tail()
         return (self.direction, self.compass, self.tail_compass)
+
+    def get_state_com_compass(self):
+        self.get_compass()
+        self.get_compass_com()
+        return (self.direction, self.compass, self.com_compass)
 
     ################################## LOCOMOTION ##############################
 
@@ -234,7 +263,6 @@ class Snake:
             if self.position[0] > self.box_length-self.cell_size and self.periodic:
                 self.position[0] = 0
             
-
         # snake body growing mechanism 
         self.body.insert(0, list(self.position))
 
@@ -427,13 +455,18 @@ class Snake:
         self.compass_rect = self.score_surface.get_rect()
         self.game_window.blit(self.compass_surface, (self.box_length-125,0))
 
-        if self.stateMode=='body_length':
-            self.bodyInfo_surface = self.main_font.render('body: frac, len = ' + str(self.bodyLengthF)+", "+str(self.body_size), True, 'green')
+        if self.state_mode=='body_length':
+            self.bodyInfo_surface = self.main_font.render('body: frac, len = ' + str(self.body_length_fraction)+", "+str(self.body_size), True, 'green')
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
-        elif self.stateMode=='tail_compass':
+        elif self.state_mode=='tail_compass':
             self.bodyInfo_surface = self.main_font.render('Tail comp: ' + str(self.tail_compass), True, 'green')
+            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
+            self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
+
+        elif self.state_mode=='com_compass':
+            self.bodyInfo_surface = self.main_font.render('COM comp: ' + str(self.com_compass), True, 'green')
             self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
             self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
 
@@ -487,15 +520,47 @@ class Snake:
             for i in range(3)
         ])
 
+    # calculate shifts needed to unwrap coordinates
+    def unwrap_coords(self, coords):
+        # ensure float for calculation
+        coords = coords.astype(float)  
+        unwrapped_coords = np.copy(coords)
+
+        diffs = np.diff(coords)
+        shift = np.zeros(coords.shape[0])
+        
+        # shift elements by adding box_length when there is a negative difference greater than half the box size
+        shift[np.where(diffs < -self.box_length / 2)[0] + 1] = self.box_length
+
+        # shift elements by subtracting box_length when there is a positive difference greater than half the box size
+        shift[np.where(diffs > self.box_length / 2)[0] + 1] = -self.box_length
+        
+        unwrapped_coords += np.cumsum(shift)
+        return unwrapped_coords
+
+    def calculate_com_with_pbc(self):
+        # convert body to numpy array for easier manipulation
+        body = np.array(self.body)
+        
+        # unwrap x and y coordinates
+        x_coords = self.unwrap_coords(body[:, 0])
+        y_coords = self.unwrap_coords(body[:, 1])
+        
+        # calculate mean positions of unwrapped coordinates
+        mean_x = np.mean(x_coords) % self.box_length
+        mean_y = np.mean(y_coords) % self.box_height
+
+        return np.array([mean_x, mean_y])
+
     # render the current frame
     def render(self):
         # clear the screen (fill with black)
         self.game_window.fill(black)
 
         # draw head 
-        headRect = pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size)
+        head_rect = pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size)
         tl, tr, bl, br = self.direction_corners[self.direction]
-        pygame.draw.rect(self.game_window, self.head_color, headRect, border_top_left_radius=tl, 
+        pygame.draw.rect(self.game_window, self.head_color, head_rect, border_top_left_radius=tl, 
                 border_top_right_radius=tr, border_bottom_left_radius=bl, border_bottom_right_radius=br)
 
         # get the eye positions based on the current direction
@@ -517,9 +582,13 @@ class Snake:
             bodyRect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
             pygame.draw.rect(self.game_window, color, bodyRect)
 
+        # draw center of mass (accounts for PBC)
+        com = self.calculate_com_with_pbc()
+        pygame.draw.circle(self.game_window, blue, (int(com[0]), int(com[1])), self.eye_radius)
+
         # draw food
-        foodRect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-        pygame.draw.rect(self.game_window, red, foodRect, border_radius=self.food_radius)
+        food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+        pygame.draw.rect(self.game_window, red, food_rect, border_radius=self.food_radius)
         
         # display score and state info
         self.show_score(white)
