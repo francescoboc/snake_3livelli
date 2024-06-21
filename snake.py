@@ -4,7 +4,6 @@
 # ********************************************************************
 
 from tools import *
-import numpy as np
 
 # in case we need to reload the library
 from importlib import reload
@@ -19,11 +18,11 @@ class Snake:
             box_size=30, 
             snake_speed=15, 
             periodic=True, 
+            rand_init_body_length=False,
+            rand_init_direction=False,
             food_rew=1, 
             lose_rew=-10, 
             step_rew=-0.02,
-            rand_init_body_length=False,
-            rand_init_direction=False
             ):
         
         # constants
@@ -51,7 +50,7 @@ class Snake:
         self.initialize_states(state_mode)
         self.initialize_actions(action_mode)
 
-        # state mode 
+        # the state_mode flag needs to be seen by some methods
         self.state_mode = state_mode
 
         # reset the environment
@@ -73,8 +72,8 @@ class Snake:
             # list of actions
             self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
             # create maps to cycle through actions
-            self._directionIndexMap = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
-            self._indexDirectionMap = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
+            self._direction_index_map = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
+            self._index_direction_map = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
         else:
             raise LookupError('Invalid action_mode')
 
@@ -102,11 +101,18 @@ class Snake:
                     for t in compass_dirs:
                         self.states.append((d,c,t))
         elif state_mode=='com_compass':
+            import numpy as np
             self.get_state = self.get_state_com_compass
             for d in head_dirs:
                 for c in compass_dirs:
                     for t in compass_dirs_empty:
                         self.states.append((d,c,t))
+        elif state_mode=='proximity':
+            self.get_state = self.get_state_proximity
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for p in prox_values:
+                        self.states.append((d,c,p))
         else:
             raise LookupError('Invalid state_mode')
         self.states.append('Term')
@@ -114,7 +120,7 @@ class Snake:
     # TODO random spawning
     def initialize_body(self, direction, size, random=False):
         # head position
-        head = [self.box_length/2, self.box_height/2] 
+        head = [self.box_length//2, self.box_height//2] 
         # create  body parts
         if direction == "RIGHT": index, increment = 0, -1
         elif direction == "LEFT": index, increment = 0, 1
@@ -158,86 +164,120 @@ class Snake:
         # output state
         return self.get_state()
 
-    # get reading from the food compass
-    def get_compass(self):
-        # calculate distances of food on y and x directions
-        dist_y = self.food_position[1] - self.position[1]
-        dist_x = self.food_position[0] - self.position[0]
+    # get reading from the compass
+    def check_compass(self, target_coords):
+        # calculate distances of target on y and x directions
+        dist_y = target_coords[1] - self.position[1]
+        dist_x = target_coords[0] - self.position[0]
         
-        # determine the cardinal direction of food, considering PBC
-        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
-        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
-        
-        # determine compass directions based on the distances
-        compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
-        compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
-        
-        # set compass attribute
-        self.compass = compass_ns + compass_ew
-    
-    def get_compass_tail(self):
-        # calculate distances of tail on y and x directions
-        tail_position = self.body[-1]
-        dist_y = tail_position[1] - self.position[1]
-        dist_x = tail_position[0] - self.position[0]
-        
-        # determine the cardinal direction of food, considering PBC
-        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
-        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
+        # determine the cardinal direction of target
+        if self.periodic:
+            south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
+            east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
+        else:
+            south = dist_y > 0
+            east = dist_x > 0
         
         # determine compass directions based on the distances
         compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
         compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
         
         # set compass attribute
-        self.tail_compass = compass_ns + compass_ew
+        return compass_ns + compass_ew
 
-    def get_compass_com(self):
-        # calculate distances of tail on y and x directions
-        com_position = self.calculate_com_with_pbc()
-        dist_y = com_position[1] - self.position[1]
-        dist_x = com_position[0] - self.position[0]
-        
-        # determine the cardinal direction of food, considering PBC
-        south = (dist_y > 0) != (abs(dist_y) > self.box_half_height)
-        east = (dist_x > 0) != (abs(dist_x) > self.box_half_length)
-        
-        # determine compass directions based on the distances
-        compass_ns = '' if dist_y == 0 else ('S' if south else 'N')
-        compass_ew = '' if dist_x == 0 else ('E' if east else 'W')
-        
-        # set compass attribute
-        self.com_compass = compass_ns + compass_ew
+    def check_proximity(self):
+        if self.periodic:
+            dir_up = [self.position[0], (self.position[1] - self.cell_size) % self.box_height]
+            dir_down = [self.position[0], (self.position[1] + self.cell_size) % self.box_height]
+            dir_left = [(self.position[0] - self.cell_size) % self.box_length, self.position[1]]
+            dir_right = [(self.position[0] + self.cell_size) % self.box_length, self.position[1]]
+        else:
+            dir_up = [self.position[0], (self.position[1] - self.cell_size)]
+            dir_down = [self.position[0], (self.position[1] + self.cell_size)]
+            dir_left = [(self.position[0] - self.cell_size), self.position[1]]
+            dir_right = [(self.position[0] + self.cell_size), self.position[1]]
 
+        # define front, left, right positions depending on direction
+        if self.direction == 'UP':
+            front = dir_up
+            left = dir_left
+            right = dir_right
+
+        elif self.direction == 'DOWN':
+            front = dir_down
+            left = dir_right
+            right = dir_left
+
+        elif self.direction == 'LEFT':
+            front = dir_left
+            left = dir_down
+            right = dir_up
+
+        elif self.direction == 'RIGHT':
+            front = dir_right
+            left = dir_up
+            right = dir_down
+
+        prox_front, prox_left, prox_right = '', '', ''
+
+        # check proximity with snake body
+        for block in self.body[1:]:
+            if front == block:
+                prox_front = 'f'
+            if left == block:
+                prox_left = 'l'
+            if right == block:
+                prox_right = 'r'
+
+        # check proximity with box boundaries
+        if not self.periodic:
+            if self.out_of_bounds(front):
+                prox_front = 'f'
+            if self.out_of_bounds(left):
+                prox_left = 'l'
+            if self.out_of_bounds(right):
+                prox_right = 'r'
+
+        return prox_front + prox_left + prox_right
+
+    # check if pos is out of box bounds
+    def out_of_bounds(self, pos):
+        return pos[0] < 0 or pos[0] > self.box_length-self.cell_size or pos[1] < 0 or pos[1] > self.box_height-self.cell_size
+                
     # calculate body length as fraction of the box length
     def get_body_length_fraction(self):
         self.body_length_fraction = int(self.body_size/self._box_fraction) 
 
+    ################################## STATE DEFS ##############################
+
     def get_state_simple(self):
-        self.get_compass()
+        self.compass = self.check_compass(self.food_position)
         return (self.direction, self.compass)
 
     def get_state_body_length(self):
-        self.get_compass()
+        self.compass = self.check_compass(self.food_position)
         self.get_body_length_fraction()
         return (self.direction, self.compass, self.body_length_fraction)
 
     def get_state_tail_compass(self):
-        self.get_compass()
-        self.get_compass_tail()
+        self.compass = self.check_compass(self.food_position)
+        self.tail_compass = self.check_compass(self.body[-1])
         return (self.direction, self.compass, self.tail_compass)
 
     def get_state_com_compass(self):
-        self.get_compass()
-        self.get_compass_com()
+        self.compass = self.check_compass(self.food_position)
+        self.com_compass = self.check_compass(self.calculate_com_with_pbc())
         return (self.direction, self.compass, self.com_compass)
+
+    def get_state_proximity(self):
+        self.compass = self.check_compass(self.food_position)
+        self.proximity = self.check_proximity()
+        return (self.direction, self.compass, self.proximity)
 
     ################################## LOCOMOTION ##############################
 
+    # spawn food at random locations avoiding overlap with snake body
     def spawn_food(self):
-        '''
-        Spawn food at random locations avoiding overlap with snake body
-        '''
         self.food_position = [rng.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
                               rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
@@ -246,23 +286,25 @@ class Snake:
 
     # update snake head and body positions
     def advance(self):
-        if self.direction == 'UP':
-            self.position[1] -= self.cell_size
-            if self.position[1] < 0 and self.periodic:
-                self.position[1] = self.box_height-self.cell_size
-        if self.direction == 'DOWN':
-            self.position[1] += self.cell_size
-            if self.position[1] > self.box_height-self.cell_size and self.periodic:
-                self.position[1] = 0
-        if self.direction == 'LEFT':
-            self.position[0] -= self.cell_size
-            if self.position[0] < 0 and self.periodic:
-                self.position[0] = self.box_length-self.cell_size
-        if self.direction == 'RIGHT':
-            self.position[0] += self.cell_size
-            if self.position[0] > self.box_length-self.cell_size and self.periodic:
-                self.position[0] = 0
-            
+        if self.periodic:
+            if self.direction == 'UP':
+                self.position[1] = (self.position[1] - self.cell_size) % self.box_height
+            elif self.direction == 'DOWN':
+                self.position[1] = (self.position[1] + self.cell_size) % self.box_height
+            elif self.direction == 'LEFT':
+                self.position[0] = (self.position[0] - self.cell_size) % self.box_length
+            elif self.direction == 'RIGHT':
+                self.position[0] = (self.position[0] + self.cell_size) % self.box_length
+        else:
+            if self.direction == 'UP':
+                self.position[1] = self.position[1] - self.cell_size
+            elif self.direction == 'DOWN':
+                self.position[1] = self.position[1] + self.cell_size
+            elif self.direction == 'LEFT':
+                self.position[0] = self.position[0] - self.cell_size
+            elif self.direction == 'RIGHT':
+                self.position[0] = self.position[0] + self.cell_size
+
         # snake body growing mechanism 
         self.body.insert(0, list(self.position))
 
@@ -280,25 +322,26 @@ class Snake:
     # check if a terminal state was reached
     def is_terminal(self):
         terminated = False
+
+        # check collision with box boundaries
         if not self.periodic:
             if self.position[0] < 0 or self.position[0] > self.box_length-self.cell_size:
                 terminated = True
             if self.position[1] < 0 or self.position[1] > self.box_height-self.cell_size:
                 terminated = True
 
+        # check collision with snake body
         for block in self.body[1:]:
-            if self.position[0] == block[0] and self.position[1] == block[1]:
+            if self.position == block:
                 terminated = True
                 
         return terminated
     
     def _get_direction_4_actions(self, action):
-        '''
-        Avoids self intersection
-        '''
         direction = self.direction
         if action == "NO_TURN":
             pass
+        # avoids self intersection
         else:
             if action == 'UP' and self.direction != 'DOWN': direction = 'UP'
             if action == 'DOWN' and self.direction != 'UP': direction = 'DOWN'
@@ -307,21 +350,18 @@ class Snake:
         
         return direction
 
+    # can only turn or do nothing (no self intersection to be prevented)
     def _get_direction_3_actions(self, action):
-        '''
-        Can only turn or do nothing. No self intersection to be prevented.
-        '''
-        
         direction = self.direction
         if action == "NO_TURN" or action == 'UP' or action == 'DOWN':
             pass
         else:
-            current_index = self._directionIndexMap[self.direction]
+            current_index = self._direction_index_map[self.direction]
             if action == 'LEFT':
                 new_index = (current_index + 1) % 4
             elif action == 'RIGHT':
                 new_index = (current_index - 1) % 4
-            direction = self._indexDirectionMap[new_index]
+            direction = self._index_direction_map[new_index]
 
         return direction 
 
@@ -329,11 +369,12 @@ class Snake:
     def step(self, action):
         self.direction = self.get_direction_from_actions(action)
 
-        gotFood = self.advance()
+        got_food = self.advance()
         
         terminated = self.is_terminal()
 
-        if gotFood:
+        # assign rewards
+        if got_food:
             reward = self.food_rew
         elif terminated:
             reward = self.lose_rew
@@ -369,9 +410,9 @@ class Snake:
                 action = policy[state]
 
             # update snake position
-            next_state, reward, terminal = self.step(action)
-            
-            if terminal:
+            next_state, reward, terminated = self.step(action)
+
+            if terminated:
                 self.game_over()
 
             self.render()
@@ -379,7 +420,6 @@ class Snake:
             # shift state
             state = next_state
 
-    
     ############################## RENDERING METHODS #######################
 
     # initialize rendering environment (pygame)
@@ -424,7 +464,7 @@ class Snake:
         self.head_color = yellow
 
     def get_eye_positions(self):
-        # Dictionary to map directions to eye positions
+        # dictionary to map directions to eye positions
         if self.direction == 'UP': 
             return  (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
                 (self.body[0][0] + self.cell_size - self.eye_offset, self.body[0][1] + self.eye_offset)
@@ -443,32 +483,33 @@ class Snake:
         # create the display surface object 
         self.score_surface = self.main_font.render('Score: ' + str(self.score), True, color)
 
-        # create a rectangular object for the text
-        self.score_rect = self.score_surface.get_rect()
-        
         # display text
-        self.game_window.blit(self.score_surface, self.score_rect)
+        self.game_window.blit(self.score_surface, (4,0))
 
     # display info about state onscreen
     def show_state_info(self, color):
         self.compass_surface = self.main_font.render('Compass: ' + str(self.compass), True, color)
         self.compass_rect = self.score_surface.get_rect()
-        self.game_window.blit(self.compass_surface, (self.box_length-125,0))
+        self.game_window.blit(self.compass_surface, (self.box_length-128,0))
 
         if self.state_mode=='body_length':
-            self.bodyInfo_surface = self.main_font.render('body: frac, len = ' + str(self.body_length_fraction)+", "+str(self.body_size), True, 'green')
-            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
-            self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
+            self.body_info_surface = self.main_font.render('body: frac, len = ' + str(self.body_length_fraction)+", "+str(self.body_size), True, 'green')
+            self.body_info_rect = self.body_info_surface.get_rect()
+            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
 
         elif self.state_mode=='tail_compass':
-            self.bodyInfo_surface = self.main_font.render('Tail comp: ' + str(self.tail_compass), True, 'green')
-            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
-            self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
+            self.body_info_surface = self.main_font.render('Tail comp: ' + str(self.tail_compass), True, 'green')
+            self.body_info_rect = self.body_info_surface.get_rect()
+            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
 
         elif self.state_mode=='com_compass':
-            self.bodyInfo_surface = self.main_font.render('COM comp: ' + str(self.com_compass), True, 'green')
-            self.bodyInfo_rect = self.bodyInfo_surface.get_rect()
-            self.game_window.blit(self.bodyInfo_surface, (0, self.box_length-25))
+            self.body_info_surface = self.main_font.render('COM comp: ' + str(self.com_compass), True, 'green')
+            self.body_info_rect = self.body_info_surface.get_rect()
+            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
+        elif self.state_mode=='proximity':
+            self.body_info_surface = self.main_font.render('Prox: ' + str(self.proximity), True, 'green')
+            self.body_info_rect = self.body_info_surface.get_rect()
+            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
 
     def game_over(self):
         # create a semi-transparent overlay with the size of the game window
@@ -513,8 +554,8 @@ class Snake:
         # exit python
         sys.exit()
 
+    # interpolate between two colors
     def interpolate_color(self, factor):
-        """Interpolate between two colors."""
         return tuple([
             int(self.start_color[i] + (self.end_color[i] - self.start_color[i]) * factor)
             for i in range(3)
@@ -538,6 +579,7 @@ class Snake:
         unwrapped_coords += np.cumsum(shift)
         return unwrapped_coords
 
+    # TODO without PBC is easy, it's just the mean(axis=0) of the body!
     def calculate_com_with_pbc(self):
         # convert body to numpy array for easier manipulation
         body = np.array(self.body)
@@ -558,7 +600,7 @@ class Snake:
         self.game_window.fill(black)
 
         # draw head 
-        head_rect = pygame.Rect(self.body[0][0], self.body[0][1], self.cell_size, self.cell_size)
+        head_rect = pygame.Rect(self.position[0], self.position[1], self.cell_size, self.cell_size)
         tl, tr, bl, br = self.direction_corners[self.direction]
         pygame.draw.rect(self.game_window, self.head_color, head_rect, border_top_left_radius=tl, 
                 border_top_right_radius=tr, border_bottom_left_radius=bl, border_bottom_right_radius=br)
@@ -572,19 +614,20 @@ class Snake:
 
         # # draw rest of the body
         # for pos in self.body[1:]:
-        #     bodyRect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
-        #     pygame.draw.rect(self.game_window, green, bodyRect)
+        #     body_rect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
+        #     pygame.draw.rect(self.game_window, green, body_rect)
 
         # draw rest of the body with gradient colors
         for i, pos in enumerate(self.body[1:], start=1):
             factor = i / (self.body_size - 1)  # factor for interpolation
             color = self.interpolate_color(factor)
-            bodyRect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
-            pygame.draw.rect(self.game_window, color, bodyRect)
+            body_rect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
+            pygame.draw.rect(self.game_window, color, body_rect)
 
         # draw center of mass (accounts for PBC)
-        com = self.calculate_com_with_pbc()
-        pygame.draw.circle(self.game_window, blue, (int(com[0]), int(com[1])), self.eye_radius)
+        if self.state_mode=='com_compass':
+            com = self.calculate_com_with_pbc()
+            pygame.draw.circle(self.game_window, blue, (int(com[0]), int(com[1])), self.eye_radius)
 
         # draw food
         food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
@@ -593,6 +636,10 @@ class Snake:
         # display score and state info
         self.show_score(white)
         self.show_state_info(white)
+
+        # draw window border if PBC is not activated
+        if not self.periodic:
+            pygame.draw.rect(self.game_window, red, self.game_window.get_rect(), 2)
 
         # FPS/refresh Rate
         self.fps.tick(self.snake_speed)

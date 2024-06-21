@@ -38,7 +38,6 @@ class QLearningAgent:
         return (sum(np.sum((q1[key]-q2[key])**2 for key in q1)))
 
     def train(self):
-
         # initialise exploration rate
         epsilon = self.epsilon_i
 
