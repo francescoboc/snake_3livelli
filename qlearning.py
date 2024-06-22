@@ -3,9 +3,7 @@
 # 
 # ********************************************************************
 
-from tqdm import tqdm
-import numpy as np
-from tools import rng
+from tools import *
 
 class QLearningAgent:
     def __init__(self, 

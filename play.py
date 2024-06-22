@@ -6,7 +6,8 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed to initialize the RNG
-seed_rng(seed=None)
+seed = None
+seed_rng(seed)
 
 # snake parameters
 cell_size = 30
@@ -28,10 +29,8 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
 
 pi_star = None
 
-# # load a saved policy
-# import numpy as np
-# n_episodes = int(1e7)
-# policy_folder = f'policies/{"periodic" if periodic else "non_periodic"}'
-# pi_star = np.load(f'{policy_folder}/pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}.npy', allow_pickle=True).item()
+# load a saved policy
+n_episodes = int(1e7)
+pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
 snake.play(pi_star)

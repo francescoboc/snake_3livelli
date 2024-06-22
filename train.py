@@ -9,7 +9,8 @@ from snake import *
 from qlearning import *
 
 # seed to initialize the RNG
-seed_rng(seed=None)
+seed = None
+seed_rng(seed)
 
 # snake parameters
 cell_size = 30
@@ -35,7 +36,7 @@ step_rew = -0.02
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, rand_init_body_length, rand_init_direction, food_rew, lose_rew, step_rew)
 
 # ql agent parameters
-n_episodes = int(1e4)
+n_episodes = int(1e5)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05
@@ -47,5 +48,4 @@ q_star, pi_star = agent.train()
 
 snake.play(pi_star)
 
-# policy_folder = f'policies/{"periodic" if periodic else "non_periodic"}'
-# np.save(f'{policy_folder}/pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}.npy', pi_star)
+# save_policy(periodic, box_size, action_mode, state_mode, n_episodes)

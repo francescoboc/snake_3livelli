@@ -5,14 +5,9 @@
 
 from tools import *
 
-# in case we need to reload the library
-from importlib import reload
-reload(sys.modules['tools'])
-from tools import *
-
 class Snake:
     def __init__(self, 
-            action_mode=4, 
+            action_mode=3, 
             state_mode='simple', 
             cell_size=30, 
             box_size=30, 
@@ -59,6 +54,7 @@ class Snake:
         # show info in terminal
         print(f'Action mode = {action_mode}')
         print(f'State mode = {state_mode}')
+        print(f'Periodic = {periodic}')
         print(f'Random initial body length = {rand_init_body_length}')
         print(f'Random initial direction = {rand_init_direction}')
 
@@ -101,7 +97,6 @@ class Snake:
                     for t in compass_dirs:
                         self.states.append((d,c,t))
         elif state_mode=='com_compass':
-            import numpy as np
             self.get_state = self.get_state_com_compass
             for d in head_dirs:
                 for c in compass_dirs:
