@@ -15,6 +15,7 @@ class Snake:
             periodic=True, 
             rand_init_body_length=False,
             rand_init_direction=False,
+            verbose=True,
             food_rew=1, 
             lose_rew=-10, 
             step_rew=-0.02,
@@ -25,6 +26,7 @@ class Snake:
         self.box_size = box_size
         self.snake_speed = snake_speed
         self.periodic = periodic
+        self.box_size_sq = box_size*box_size
 
         # calculate size of the simulation box
         self.box_length = cell_size*box_size
@@ -52,11 +54,12 @@ class Snake:
         self.reset()
 
         # show info in terminal
-        print(f'Action mode = {action_mode}')
-        print(f'State mode = {state_mode}')
-        print(f'Periodic = {periodic}')
-        print(f'Random initial body length = {rand_init_body_length}')
-        print(f'Random initial direction = {rand_init_direction}')
+        if verbose:
+            print(f'Action mode = {action_mode}')
+            print(f'State mode = {state_mode}')
+            print(f'Periodic = {periodic}')
+            print(f'Random initial body length = {rand_init_body_length}')
+            print(f'Random initial direction = {rand_init_direction}')
 
     # buil list of actions
     def initialize_actions(self, action_mode):
@@ -389,12 +392,16 @@ class Snake:
         return next_state, reward, terminated
 
     # play with a given policy or against a user
-    def play(self, policy = None):
-        self.init_render()
-        self.init_render()
+    def play(self, policy=None, render=True):
+        if render:
+            self.init_render()
+            self.init_render()
 
         # reset the game
         state = self.reset()
+
+        old_score = 0
+        stuck_counter = 0
 
         # game loop
         while True:
@@ -408,12 +415,33 @@ class Snake:
             next_state, reward, terminated = self.step(action)
 
             if terminated:
-                self.game_over()
+                if render:
+                    self.game_over()
+                    pygame.quit()
+                    sys.exit()
+                else:
+                    truncated = False
+                    return self.score, truncated
 
-            self.render()
+            if render:
+                self.render_frame()
 
             # shift state
             state = next_state
+
+            # if score didn't change, increase counter
+            if self.score == old_score: stuck_counter += 1
+            else: stuck_counter = 0
+
+            # TODO this check should also be propagated to the train() function
+            # maybe adding a special reward for truncation
+            # otherwise training episodes can last forever!
+            # if the counter is stuck for too long, truncate
+            if stuck_counter == self.box_size_sq:
+                truncated = True
+                return self.score, truncated
+
+            old_score = self.score
 
     ############################## RENDERING METHODS #######################
 
@@ -532,23 +560,13 @@ class Snake:
         self.game_window.blit(self.game_over_surface, self.game_over_rect)
         pygame.display.flip()
         
-        # # wait
-        # time.sleep(3)
-
-        # wait for user input to exit
+        # wait for user input to return
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
                         and event.key == pygame.K_ESCAPE):
-                    pygame.quit()
-                    sys.exit()
+                    return
             
-        # deactivate pygame library
-        pygame.quit()
-
-        # exit python
-        sys.exit()
-
     # interpolate between two colors
     def interpolate_color(self, factor):
         return tuple([
@@ -590,7 +608,7 @@ class Snake:
         return np.array([mean_x, mean_y])
 
     # render the current frame
-    def render(self):
+    def render_frame(self):
         # clear the screen (fill with black)
         self.game_window.fill(black)
 

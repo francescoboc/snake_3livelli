@@ -6,18 +6,18 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed to initialize the RNG
-seed = None
+seed = 2423007490054640143
 seed_rng(seed)
 
 # snake parameters
 cell_size = 30
 box_size = 30
-snake_speed = 15
+snake_speed = 60
 periodic = True
 
-action_mode = 3
-rand_init_body_length = True
-rand_init_direction = True
+action_mode = 4
+rand_init_body_length = False
+rand_init_direction = False
 
 # state_mode = 'simple'
 # state_mode = 'body_length'

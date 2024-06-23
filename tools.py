@@ -46,20 +46,23 @@ def read_keys():
 
 
 # initialise the RNG with a given seed or a random one
-def seed_rng(seed=None):
+def seed_rng(seed=None, verbose=True):
     if seed is None:
         seed = random.randrange(sys.maxsize)
     rng.seed(seed)
-    print(f'RNG seed = {seed}')
+    if verbose:
+        print(f'RNG seed = {seed}')
+    return seed
 
 # load a saved policy
-def load_policy(periodic, box_size, action_mode, state_mode, n_episodes):
+def load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=True):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
     policy_name = f'pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}'
     try: 
         pi_star = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
-        print(f'Policy {policy_name} loaded!')
+        if verbose:
+            print(f'Policy {policy_name} loaded!')
     except:
         raise Exception(f'Policy {policy_name} not found!')
     return pi_star
