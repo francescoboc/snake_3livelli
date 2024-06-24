@@ -15,10 +15,11 @@ class Snake:
             periodic=True, 
             rand_init_body_length=False,
             rand_init_direction=False,
+            food_rew=1.0, 
+            lose_rew=-10.0, 
+            step_rew=0.0,
+            trun_rew=-5.0,
             verbose=True,
-            food_rew=1, 
-            lose_rew=-10, 
-            step_rew=-0.02,
             ):
         
         # constants
@@ -38,6 +39,7 @@ class Snake:
         self.food_rew = food_rew
         self.lose_rew = lose_rew
         self.step_rew = step_rew
+        self.trun_rew = trun_rew
 
         # flags to randomize the initial configuration of the snake
         self.rand_init_body_length = rand_init_body_length
@@ -69,7 +71,7 @@ class Snake:
         elif action_mode == 3:
             self.get_direction_from_actions = self._get_direction_3_actions
             # list of actions
-            self.actions = ['NO_TURN', 'RIGHT', 'LEFT']
+            self.actions = ['LEFT', 'NO_TURN', 'RIGHT']
             # create maps to cycle through actions
             self._direction_index_map = {'UP':0,'LEFT':1,'DOWN':2,"RIGHT":3}
             self._index_direction_map = {0:'UP',1:'LEFT',2:'DOWN',3:"RIGHT"}
@@ -158,6 +160,10 @@ class Snake:
 
         # reset initial score
         self.score = 0
+
+        # reset counters to check for truncation
+        self.old_score = 0
+        self.stuck_counter = 0
 
         # output state
         return self.get_state()
@@ -280,7 +286,7 @@ class Snake:
                               rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
             self.spawn_food()
-        self.food_spawn = True
+        self.food_spawned = True
 
     # update snake head and body positions
     def advance(self):
@@ -310,12 +316,12 @@ class Snake:
         if self.position[0] == self.food_position[0] and self.position[1] == self.food_position[1]:
             # increment score
             self.score += 1
-            self.food_spawn = False
+            self.food_spawned = False
         else:
             # otherwise, delete the last body element
             self.body.pop()
         
-        return not self.food_spawn
+        return not self.food_spawned
 
     # check if a terminal state was reached
     def is_terminal(self):
@@ -371,16 +377,20 @@ class Snake:
         
         terminated = self.is_terminal()
 
+        truncated = self.is_truncated()
+
         # assign rewards
-        if got_food:
-            reward = self.food_rew
-        elif terminated:
+        if terminated:
             reward = self.lose_rew
+        elif truncated:
+            reward = self.trun_rew
+        elif got_food:
+            reward = self.food_rew
         else:
             reward = self.step_rew
         
         # if food was captured, spawn a new one
-        if self.food_spawn == False:
+        if self.food_spawned == False:
             self.spawn_food()
 
         # get reading of new state
@@ -389,7 +399,23 @@ class Snake:
         else:
             next_state = 'Term'
 
-        return next_state, reward, terminated
+        return next_state, reward, terminated, truncated
+
+
+    # check if the snake is stuck in a loop
+    def is_truncated(self):
+        truncated = False
+
+        # if score didn't change, increase counter
+        if self.score == self.old_score: self.stuck_counter += 1
+        else: self.stuck_counter = 0
+
+        # if the counter is stuck for too long, truncate
+        if self.stuck_counter == self.box_size_sq:
+            truncated = True
+
+        self.old_score = self.score
+        return truncated
 
     # play with a given policy or against a user
     def play(self, policy=None, render=True):
@@ -400,9 +426,6 @@ class Snake:
         # reset the game
         state = self.reset()
 
-        old_score = 0
-        stuck_counter = 0
-
         # game loop
         while True:
             if policy is None:
@@ -412,15 +435,14 @@ class Snake:
                 action = policy[state]
 
             # update snake position
-            next_state, reward, terminated = self.step(action)
+            next_state, reward, terminated, truncated = self.step(action)
 
-            if terminated:
+            if terminated or truncated:
                 if render:
                     self.game_over()
                     pygame.quit()
                     sys.exit()
                 else:
-                    truncated = False
                     return self.score, truncated
 
             if render:
@@ -428,20 +450,6 @@ class Snake:
 
             # shift state
             state = next_state
-
-            # if score didn't change, increase counter
-            if self.score == old_score: stuck_counter += 1
-            else: stuck_counter = 0
-
-            # TODO this check should also be propagated to the train() function
-            # maybe adding a special reward for truncation
-            # otherwise training episodes can last forever!
-            # if the counter is stuck for too long, truncate
-            if stuck_counter == self.box_size_sq:
-                truncated = True
-                return self.score, truncated
-
-            old_score = self.score
 
     ############################## RENDERING METHODS #######################
 

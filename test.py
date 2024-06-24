@@ -9,9 +9,9 @@ from snake import *
 cell_size = 30
 box_size = 30
 snake_speed = 150
-periodic = True
+periodic = False
 
-action_mode = 4
+action_mode = 3
 
 # state_mode = 'simple'
 # state_mode = 'body_length'
@@ -25,7 +25,7 @@ rand_init_direction = False
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, rand_init_body_length, rand_init_direction, verbose=False)
 
 # load a saved policy
-n_episodes = int(1e7)
+n_episodes = int(1e8)
 pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
 n_games = 1000

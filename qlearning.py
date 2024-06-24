@@ -59,7 +59,7 @@ class QLearningAgent:
 
                 # take action, observe reward and next state
                 action = self.environment.actions[action_id]
-                next_state, reward, terminated = self.environment.step(action)
+                next_state, reward, terminated, truncated = self.environment.step(action)
 
                 # Q-Learning update rule 
                 # off-policy: Q is updated on the optimal policy, different from the behavior one 
@@ -76,7 +76,7 @@ class QLearningAgent:
                 step += 1
 
                 # if a terminal state was reached, break 
-                if terminated:
+                if terminated or truncated:
                     break
 
             # decay epsilon linearly
