@@ -26,6 +26,12 @@ compass_dirs_empty = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', '']
 # proximity values
 prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 
+# spirality values
+spir_values = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
+
+# map actions to turn values to calculate spirality of the snake
+actions_turn_map = {'LEFT':-1, 'NO_TURN':0, 'RIGHT':1}
+
 # initial direction and size of the snake
 init_direction = 'RIGHT' 
 init_size = 4

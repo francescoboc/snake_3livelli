@@ -113,12 +113,18 @@ class Snake:
                 for c in compass_dirs:
                     for p in prox_values:
                         self.states.append((d,c,p))
+        elif state_mode=='spirality':
+            self.get_state = self.get_state_spirality
+            for d in head_dirs:
+                for c in compass_dirs:
+                    for p in prox_values:
+                        for s in spir_values:
+                            self.states.append((d,c,p,s))
         else:
             raise LookupError('Invalid state_mode')
         self.states.append('Term')
 
-    # TODO random spawning
-    def initialize_body(self, direction, size, random=False):
+    def initialize_body(self, direction, size):
         # head position
         head = [self.box_length//2, self.box_height//2] 
         # create  body parts
@@ -149,8 +155,14 @@ class Snake:
             direction = rng.choice(head_dirs)
         else:
             direction = init_direction
+
         # snake's head initial position
         self.position, self.body = self.initialize_body(direction, size)
+
+        # initialize turns history and spirality
+        if self.state_mode=='spirality':
+            self.turns_history = [0 for i in range(size-2)]
+            self.spirality = 0
 
         # reset snake direction towards RIGHT
         self.direction = direction
@@ -244,6 +256,21 @@ class Snake:
 
         return prox_front + prox_left + prox_right
 
+    def check_spirality(self, action):
+        # check value of turn assigned to choosen action
+        try: turn = actions_turn_map[action]
+        except KeyError: turn = 0
+
+        # append new turn to the top of turns_history
+        self.turns_history.insert(0, turn)
+
+        # pop last element if snake body did not grow
+        if not self.food_eaten:
+            self.turns_history.pop()
+
+        # spirality is just the sum of all the turns
+        return np.sum(self.turns_history)
+
     # check if pos is out of box bounds
     def out_of_bounds(self, pos):
         return pos[0] < 0 or pos[0] > self.box_length-self.cell_size or pos[1] < 0 or pos[1] > self.box_height-self.cell_size
@@ -278,6 +305,12 @@ class Snake:
         self.proximity = self.check_proximity()
         return (self.direction, self.compass, self.proximity)
 
+    def get_state_spirality(self):
+        self.compass = self.check_compass(self.food_position)
+        self.proximity = self.check_proximity()
+        # NB spirality is calculated outside this function because it needs the action
+        return (self.direction, self.compass, self.proximity, self.spirality)
+
     ################################## LOCOMOTION ##############################
 
     # spawn food at random locations avoiding overlap with snake body
@@ -286,7 +319,7 @@ class Snake:
                               rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
             self.spawn_food()
-        self.food_spawned = True
+        self.food_eaten = False
 
     # update snake head and body positions
     def advance(self):
@@ -316,12 +349,11 @@ class Snake:
         if self.position[0] == self.food_position[0] and self.position[1] == self.food_position[1]:
             # increment score
             self.score += 1
-            self.food_spawned = False
+            # change flag to keep track of food spawning
+            self.food_eaten = True
         else:
             # otherwise, delete the last body element
             self.body.pop()
-        
-        return not self.food_spawned
 
     # check if a terminal state was reached
     def is_terminal(self):
@@ -371,28 +403,31 @@ class Snake:
 
     # advance one timestep
     def step(self, action):
+        # set direction based on action and advance snake in time
         self.direction = self.get_direction_from_actions(action)
+        self.advance()
 
-        got_food = self.advance()
-        
+        # check if terminal state or truncation was reached
         terminated = self.is_terminal()
-
         truncated = self.is_truncated()
+
+        if self.state_mode=='spirality':
+            self.spirality = self.check_spirality(action)
+
+        # if food was eaten, spawn a new one
+        if self.food_eaten:
+            self.spawn_food()
 
         # assign rewards
         if terminated:
             reward = self.lose_rew
         elif truncated:
             reward = self.trun_rew
-        elif got_food:
+        elif self.food_eaten:
             reward = self.food_rew
         else:
             reward = self.step_rew
         
-        # if food was captured, spawn a new one
-        if self.food_spawned == False:
-            self.spawn_food()
-
         # get reading of new state
         if not terminated:
             next_state = self.get_state()
@@ -400,7 +435,6 @@ class Snake:
             next_state = 'Term'
 
         return next_state, reward, terminated, truncated
-
 
     # check if the snake is stuck in a loop
     def is_truncated(self):
@@ -425,6 +459,7 @@ class Snake:
 
         # reset the game
         state = self.reset()
+        print(state)
 
         # game loop
         while True:
@@ -450,6 +485,7 @@ class Snake:
 
             # shift state
             state = next_state
+            print(state)
 
     ############################## RENDERING METHODS #######################
 
