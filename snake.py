@@ -52,6 +52,25 @@ class Snake:
         # the state_mode flag needs to be seen by some methods
         self.state_mode = state_mode
 
+        # load compass images
+        self.compass_images = {
+            'N': pygame.image.load('img/north.png'),
+            'NE': pygame.image.load('img/north_east.png'),
+            'E': pygame.image.load('img/east.png'),
+            'SE': pygame.image.load('img/south_east.png'),
+            'S': pygame.image.load('img/south.png'),
+            'SW': pygame.image.load('img/south_west.png'),
+            'W': pygame.image.load('img/west.png'),
+            'NW': pygame.image.load('img/north_west.png')
+        }
+
+        # define the height of the info bar
+        self.info_bar_height = 100
+
+        # resize images if needed
+        for key in self.compass_images:
+            self.compass_images[key] = pygame.transform.scale(self.compass_images[key], (self.info_bar_height - 5, self.info_bar_height - 5))
+
         # reset the environment
         self.reset()
 
@@ -269,7 +288,12 @@ class Snake:
             self.turns_history.pop()
 
         # spirality is just the sum of all the turns
-        return np.sum(self.turns_history)
+        spirality = np.sum(self.turns_history)
+
+        if spirality > 4: spirality = 4
+        if spirality < -4: spirality = -4
+
+        return spirality
 
     # check if pos is out of box bounds
     def out_of_bounds(self, pos):
@@ -459,7 +483,6 @@ class Snake:
 
         # reset the game
         state = self.reset()
-        print(state)
 
         # game loop
         while True:
@@ -485,7 +508,6 @@ class Snake:
 
             # shift state
             state = next_state
-            print(state)
 
     ############################## RENDERING METHODS #######################
 
@@ -493,10 +515,10 @@ class Snake:
     def init_render(self):
         # initialise pygame 
         pygame.init()
-        
-        # initialise game window
+
+        # initialise game window (add height of info bar)
         pygame.display.set_caption('Snake')
-        self.game_window = pygame.display.set_mode((self.box_length, self.box_height))
+        self.game_window = pygame.display.set_mode((self.box_length, self.box_height + self.info_bar_height))
         
         # FPS (frames per second) controller
         self.fps = pygame.time.Clock()
@@ -505,7 +527,7 @@ class Snake:
         self.main_font = pygame.font.SysFont('arial', 20)
 
         # create fotn used in the game over screen
-        self.game_over_font = pygame.font.SysFont('arial', 50)
+        self.game_over_font = pygame.font.SysFont('arial', 50, bold=True)
 
         # radii to draw the rounded edges 
         self.food_radius = self.cell_size // 3
@@ -545,45 +567,49 @@ class Snake:
             return (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
                 (self.body[0][0] + self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
 
-    # display score onscreen
-    def show_score(self, color):
-        # create the display surface object 
-        self.score_surface = self.main_font.render('Score: ' + str(self.score), True, color)
+    # render the info bar (above the game box)
+    def render_info_bar(self, color, background_color):
+        # draw the info bar background at the top of the window
+        info_bar_rect = pygame.Rect(0, self.box_height, self.box_length, self.info_bar_height)
+        pygame.draw.rect(self.game_window, background_color, info_bar_rect)
 
-        # display text
-        self.game_window.blit(self.score_surface, (4,0))
+        # display the score on the left side of the info bar
+        self.score_surface = self.main_font.render(f'Punti: {self.score}', True, color)
+        self.game_window.blit(self.score_surface, (10, self.box_height + 10))
 
-    # display info about state onscreen
-    def show_state_info(self, color):
-        self.compass_surface = self.main_font.render('Compass: ' + str(self.compass), True, color)
-        self.compass_rect = self.score_surface.get_rect()
-        self.game_window.blit(self.compass_surface, (self.box_length-128,0))
+        # get the correct compass image based on the current direction
+        compass_image = self.compass_images.get(self.compass) 
 
-        if self.state_mode=='body_length':
+        # draw the compass image on the right side of the info bar
+        self.game_window.blit(compass_image, (self.box_length - 100, self.box_height))
+
+        # # display the state compass on the right side of the info bar
+        # self.compass_surface = self.main_font.render(f'Bussola: {self.compass}', True, color)
+        # self.game_window.blit(self.compass_surface, (self.box_length - 128, self.box_height + 10))
+
+        # display proximity if in 'proximity' state mode
+        if self.state_mode == 'proximity':
+            self.body_info_surface = self.main_font.render(f'Prossimità: {self.proximity}', True, 'green')
+            self.game_window.blit(self.body_info_surface, (self.box_length // 2 - 50, self.box_height + 10))  # Center it
+
+        elif self.state_mode=='body_length':
             self.body_info_surface = self.main_font.render('body: frac, len = ' + str(self.body_length_fraction)+", "+str(self.body_size), True, 'green')
-            self.body_info_rect = self.body_info_surface.get_rect()
-            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
+            self.game_window.blit(self.body_info_surface, (self.box_length // 2 - 50, self.box_height + 10))  # Center it
 
         elif self.state_mode=='tail_compass':
             self.body_info_surface = self.main_font.render('Tail comp: ' + str(self.tail_compass), True, 'green')
-            self.body_info_rect = self.body_info_surface.get_rect()
-            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
+            self.game_window.blit(self.body_info_surface, (self.box_length // 2 - 50, self.box_height + 10))  # Center it
 
         elif self.state_mode=='com_compass':
             self.body_info_surface = self.main_font.render('COM comp: ' + str(self.com_compass), True, 'green')
-            self.body_info_rect = self.body_info_surface.get_rect()
-            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
-        elif self.state_mode=='proximity':
-            self.body_info_surface = self.main_font.render('Prox: ' + str(self.proximity), True, 'green')
-            self.body_info_rect = self.body_info_surface.get_rect()
-            self.game_window.blit(self.body_info_surface, (4, self.box_length-25))
+            self.game_window.blit(self.body_info_surface, (self.box_length // 2 - 50, self.box_height + 10))  # Center it
 
     def game_over(self):
         # create a semi-transparent overlay with the size of the game window
-        overlay = pygame.Surface((self.box_length, self.box_height))
+        overlay = pygame.Surface((self.box_length, self.box_height + self.info_bar_height))
 
         # set transparency level (0 fully transparent, 255 fully opaque) 
-        overlay.set_alpha(60) 
+        overlay.set_alpha(50) 
 
         # fill the surface with red color
         overlay.fill(red)
@@ -592,16 +618,23 @@ class Snake:
         self.game_window.blit(overlay, (0, 0))
             
         # create a text surface on which text will be drawn
-        self.game_over_surface = self.game_over_font.render('Your score is: ' + str(self.score), True, red)
+        self.game_over_surface = self.game_over_font.render('GAME OVER!', True, red)
+        if self.score == 1:
+            self.game_over_surface1 = self.game_over_font.render(f'Hai fatto {self.score} punto', True, red)
+        else:
+            self.game_over_surface1 = self.game_over_font.render(f'Hai fatto {self.score} punti', True, red)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
+        self.game_over_rect1 = self.game_over_surface1.get_rect()
         
         # set position of the text
         self.game_over_rect.midtop = (self.box_length/2, self.box_height/4)
+        self.game_over_rect1.midtop = (self.box_length/2, self.box_height/4 + self.game_over_font.get_height())
         
         # blit the text on screen
         self.game_window.blit(self.game_over_surface, self.game_over_rect)
+        self.game_window.blit(self.game_over_surface1, self.game_over_rect1)
         pygame.display.flip()
         
         # wait for user input to return
@@ -690,16 +723,19 @@ class Snake:
         food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
         pygame.draw.rect(self.game_window, red, food_rect, border_radius=self.food_radius)
         
-        # display score and state info
-        self.show_score(white)
-        self.show_state_info(white)
+        # # display score and state info
+        # self.show_score(white)
+        # self.show_state_info(white)
+
+        # Render the info bar first
+        self.render_info_bar(color=(255, 255, 255), background_color=(50, 50, 50))
 
         # draw window border if PBC is not activated
         if not self.periodic:
             pygame.draw.rect(self.game_window, red, self.game_window.get_rect(), 2)
 
-        # FPS/refresh Rate
-        self.fps.tick(self.snake_speed)
+        # FPS/refresh Rate (increase speed with score)
+        self.fps.tick(self.snake_speed + self.score/10)
 
         # refresh game screen
         pygame.display.update()

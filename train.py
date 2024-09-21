@@ -22,11 +22,12 @@ action_mode = 3
 rand_init_body_length = False
 rand_init_direction = False
 
-state_mode = 'simple'
+# state_mode = 'simple'
 # state_mode = 'body_length'
 # state_mode = 'tail_compass'
 # state_mode = 'com_compass'
 # state_mode = 'proximity'
+state_mode = 'spirality'
 
 # rewards
 food_rew = 1.0
@@ -37,7 +38,7 @@ trun_rew = -5
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, rand_init_body_length, rand_init_direction, food_rew, lose_rew, step_rew, trun_rew)
 
 # ql agent parameters
-n_episodes = int(1e3)
+n_episodes = int(1e4)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05
