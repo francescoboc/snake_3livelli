@@ -15,6 +15,7 @@ class Snake:
             periodic=True, 
             rand_init_body_length=False,
             rand_init_direction=False,
+            show_compass=True,
             sound_effects=False,
             show_state_info=False,
             verbose=True,
@@ -55,48 +56,50 @@ class Snake:
         self.state_mode = state_mode
 
         # flags for sounds and state info
+        self.show_compass = show_compass
         self.sound_effects = sound_effects
         self.show_state_info = show_state_info
 
         # load compass images
-        self.compass_images = {
-            'N': pygame.image.load('img/north.png'),
-            'NE': pygame.image.load('img/north_east.png'),
-            'E': pygame.image.load('img/east.png'),
-            'SE': pygame.image.load('img/south_east.png'),
-            'S': pygame.image.load('img/south.png'),
-            'SW': pygame.image.load('img/south_west.png'),
-            'W': pygame.image.load('img/west.png'),
-            'NW': pygame.image.load('img/north_west.png')
-        }
-
-        # resize images
-        for key in self.compass_images:
-            self.compass_images[key] = pygame.transform.smoothscale(self.compass_images[key], (self.cell_size*4 , self.cell_size*4))
-
-        # load proximity images
-        if self.state_mode == 'proximity':
-            self.proximity_images = {
-                'f': pygame.image.load('img/prox_f.png'),
-                'l': pygame.image.load('img/prox_l.png'),
-                'r': pygame.image.load('img/prox_r.png'),
-                'fl': pygame.image.load('img/prox_fl.png'),
-                'fr': pygame.image.load('img/prox_fr.png'),
-                'lr': pygame.image.load('img/prox_lr.png'),
-                'flr': pygame.image.load('img/prox_flr.png'),
+        if self.show_compass:
+            self.compass_images = {
+                'N': pygame.image.load('img/north.png'),
+                'NE': pygame.image.load('img/north_east.png'),
+                'E': pygame.image.load('img/east.png'),
+                'SE': pygame.image.load('img/south_east.png'),
+                'S': pygame.image.load('img/south.png'),
+                'SW': pygame.image.load('img/south_west.png'),
+                'W': pygame.image.load('img/west.png'),
+                'NW': pygame.image.load('img/north_west.png')
             }
 
             # resize images
-            for key in self.proximity_images:
-                self.proximity_images[key] = pygame.transform.smoothscale(self.proximity_images[key], (self.cell_size*1.7 , self.cell_size*1.7))
+            for key in self.compass_images:
+                self.compass_images[key] = pygame.transform.smoothscale(self.compass_images[key], (self.cell_size*4 , self.cell_size*4))
 
-            # rotation angles depending on head directions
-            self.rotation_angles = {
-                'UP': 0,
-                'RIGHT': -90,
-                'DOWN': -180,
-                'LEFT': -270,
+            # load proximity images
+            if self.state_mode == 'proximity':
+                self.proximity_images = {
+                    'f': pygame.image.load('img/prox_f.png'),
+                    'l': pygame.image.load('img/prox_l.png'),
+                    'r': pygame.image.load('img/prox_r.png'),
+                    'fl': pygame.image.load('img/prox_fl.png'),
+                    'fr': pygame.image.load('img/prox_fr.png'),
+                    'lr': pygame.image.load('img/prox_lr.png'),
+                    'flr': pygame.image.load('img/prox_flr.png'),
                 }
+
+                # resize images
+                for key in self.proximity_images:
+                    self.proximity_images[key] = pygame.transform.smoothscale(self.proximity_images[key], (self.cell_size*1.7 , self.cell_size*1.7))
+
+                # rotation angles depending on head directions
+                self.rotation_angles = {
+                    'UP': 0,
+                    'RIGHT': -90,
+                    'DOWN': -180,
+                    'LEFT': -270,
+                    }
 
         # reset the environment
         self.reset()
@@ -596,24 +599,25 @@ class Snake:
 
     # display info about state onscreen
     def display_state_info(self, color, head_rect):
-        # add image corresponding to proximity state
-        if self.state_mode=='proximity':
-            if self.proximity != '':
-                # get the correct proximity image
-                proximity_image = self.proximity_images.get(self.proximity) 
-                # rotate it accordingly
-                proximity_image = pygame.transform.rotate(proximity_image, self.rotation_angles[self.direction])
-                # place it on the head of the snake
-                proximity_rect = proximity_image.get_rect(center=head_rect.center)
-                self.game_window.blit(proximity_image, proximity_rect)
-                # play sound
-                if self.sound_effects:
-                    self.sound_proximity.play()
+        if self.show_compass:
+            # add image corresponding to proximity state
+            if self.state_mode=='proximity':
+                if self.proximity != '':
+                    # get the correct proximity image
+                    proximity_image = self.proximity_images.get(self.proximity) 
+                    # rotate it accordingly
+                    proximity_image = pygame.transform.rotate(proximity_image, self.rotation_angles[self.direction])
+                    # place it on the head of the snake
+                    proximity_rect = proximity_image.get_rect(center=head_rect.center)
+                    self.game_window.blit(proximity_image, proximity_rect)
+                    # play sound
+                    if self.sound_effects:
+                        self.sound_proximity.play()
 
-        # same thing for the food compass
-        compass_image = self.compass_images.get(self.compass) 
-        compass_rect = compass_image.get_rect(center=head_rect.center)
-        self.game_window.blit(compass_image, compass_rect)
+            # same thing for the food compass
+            compass_image = self.compass_images.get(self.compass) 
+            compass_rect = compass_image.get_rect(center=head_rect.center)
+            self.game_window.blit(compass_image, compass_rect)
 
         # simpler text version
         if self.show_state_info:
