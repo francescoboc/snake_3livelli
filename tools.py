@@ -18,19 +18,14 @@ green = pygame.Color(14, 171, 0)
 blue = pygame.Color(0, 0, 255)
 yellow = pygame.Color(252, 252, 25)
 
-# head directions, compass directions
+# head directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']
+
+# compass directions
 compass_dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
-compass_dirs_empty = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', '']
 
 # proximity values
 prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
-
-# spirality values
-spir_values = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
-
-# map actions to turn values to calculate spirality of the snake
-actions_turn_map = {'LEFT':-1, 'NO_TURN':0, 'RIGHT':1}
 
 # initial direction and size of the snake
 init_direction = 'RIGHT' 
@@ -81,4 +76,3 @@ def save_policy(periodic, box_size, action_mode, state_mode, n_episodes):
     np.save(f'{policy_folder}/{policy_name}.npy', pi_star)
     print(f'Policy {policy_name} saved!')
     return pi_star
-

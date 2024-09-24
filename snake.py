@@ -15,11 +15,13 @@ class Snake:
             periodic=True, 
             rand_init_body_length=False,
             rand_init_direction=False,
+            sound_effects=False,
+            show_state_info=False,
+            verbose=True,
             food_rew=1.0, 
             lose_rew=-10.0, 
             step_rew=0.0,
             trun_rew=-5.0,
-            verbose=True,
             ):
         
         # constants
@@ -52,6 +54,10 @@ class Snake:
         # the state_mode flag needs to be seen by some methods
         self.state_mode = state_mode
 
+        # flags for sounds and state info
+        self.sound_effects = sound_effects
+        self.show_state_info = show_state_info
+
         # load compass images
         self.compass_images = {
             'N': pygame.image.load('img/north.png'),
@@ -64,9 +70,33 @@ class Snake:
             'NW': pygame.image.load('img/north_west.png')
         }
 
-        # resize images if needed
+        # resize images
         for key in self.compass_images:
             self.compass_images[key] = pygame.transform.smoothscale(self.compass_images[key], (self.cell_size*4 , self.cell_size*4))
+
+        # load proximity images
+        if self.state_mode == 'proximity':
+            self.proximity_images = {
+                'f': pygame.image.load('img/prox_f.png'),
+                'l': pygame.image.load('img/prox_l.png'),
+                'r': pygame.image.load('img/prox_r.png'),
+                'fl': pygame.image.load('img/prox_fl.png'),
+                'fr': pygame.image.load('img/prox_fr.png'),
+                'lr': pygame.image.load('img/prox_lr.png'),
+                'flr': pygame.image.load('img/prox_flr.png'),
+            }
+
+            # resize images
+            for key in self.proximity_images:
+                self.proximity_images[key] = pygame.transform.smoothscale(self.proximity_images[key], (self.cell_size*1.7 , self.cell_size*1.7))
+
+            # rotation angles depending on head directions
+            self.rotation_angles = {
+                'UP': 0,
+                'RIGHT': -90,
+                'DOWN': -180,
+                'LEFT': -270,
+                }
 
         # reset the environment
         self.reset()
@@ -102,40 +132,12 @@ class Snake:
             for d in head_dirs:
                 for c in compass_dirs:
                     self.states.append((d,c))
-        elif state_mode=='body_length':
-            fractions = 3
-            self._box_fraction = self.box_size/fractions
-            self.get_state = self.get_state_body_length
-            bodyFractions = [b for b in range(fractions**2)]
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for b in bodyFractions:
-                        self.states.append((d,c,b))
-        elif state_mode=='tail_compass':
-            self.get_state = self.get_state_tail_compass
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for t in compass_dirs:
-                        self.states.append((d,c,t))
-        elif state_mode=='com_compass':
-            self.get_state = self.get_state_com_compass
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for t in compass_dirs_empty:
-                        self.states.append((d,c,t))
         elif state_mode=='proximity':
             self.get_state = self.get_state_proximity
             for d in head_dirs:
                 for c in compass_dirs:
                     for p in prox_values:
                         self.states.append((d,c,p))
-        elif state_mode=='spirality':
-            self.get_state = self.get_state_spirality
-            for d in head_dirs:
-                for c in compass_dirs:
-                    for p in prox_values:
-                        for s in spir_values:
-                            self.states.append((d,c,p,s))
         else:
             raise LookupError('Invalid state_mode')
         self.states.append('Term')
@@ -174,11 +176,6 @@ class Snake:
 
         # snake's head initial position
         self.position, self.body = self.initialize_body(direction, size)
-
-        # initialize turns history and spirality
-        if self.state_mode=='spirality':
-            self.turns_history = [0 for i in range(size-2)]
-            self.spirality = 0
 
         # reset snake direction towards RIGHT
         self.direction = direction
@@ -272,65 +269,20 @@ class Snake:
 
         return prox_front + prox_left + prox_right
 
-    def check_spirality(self, action):
-        # check value of turn assigned to choosen action
-        try: turn = actions_turn_map[action]
-        except KeyError: turn = 0
-
-        # append new turn to the top of turns_history
-        self.turns_history.insert(0, turn)
-
-        # pop last element if snake body did not grow
-        if not self.food_eaten:
-            self.turns_history.pop()
-
-        # spirality is just the sum of all the turns
-        spirality = np.sum(self.turns_history)
-
-        if spirality > 4: spirality = 4
-        if spirality < -4: spirality = -4
-
-        return spirality
-
     # check if pos is out of box bounds
     def out_of_bounds(self, pos):
         return pos[0] < 0 or pos[0] > self.box_length-self.cell_size or pos[1] < 0 or pos[1] > self.box_height-self.cell_size
                 
-    # calculate body length as fraction of the box length
-    def get_body_length_fraction(self):
-        self.body_length_fraction = int(self.body_size/self._box_fraction) 
-
     ################################## STATE DEFS ##############################
 
     def get_state_simple(self):
         self.compass = self.check_compass(self.food_position)
         return (self.direction, self.compass)
 
-    def get_state_body_length(self):
-        self.compass = self.check_compass(self.food_position)
-        self.get_body_length_fraction()
-        return (self.direction, self.compass, self.body_length_fraction)
-
-    def get_state_tail_compass(self):
-        self.compass = self.check_compass(self.food_position)
-        self.tail_compass = self.check_compass(self.body[-1])
-        return (self.direction, self.compass, self.tail_compass)
-
-    def get_state_com_compass(self):
-        self.compass = self.check_compass(self.food_position)
-        self.com_compass = self.check_compass(self.calculate_com_with_pbc())
-        return (self.direction, self.compass, self.com_compass)
-
     def get_state_proximity(self):
         self.compass = self.check_compass(self.food_position)
         self.proximity = self.check_proximity()
         return (self.direction, self.compass, self.proximity)
-
-    def get_state_spirality(self):
-        self.compass = self.check_compass(self.food_position)
-        self.proximity = self.check_proximity()
-        # NB spirality is calculated outside this function because it needs the action
-        return (self.direction, self.compass, self.proximity, self.spirality)
 
     ################################## LOCOMOTION ##############################
 
@@ -438,6 +390,9 @@ class Snake:
         # if food was eaten, spawn a new one
         if self.food_eaten:
             self.spawn_food()
+            # play sound
+            if self.sound_effects:
+                self.sound_chomp.play()
 
         # assign rewards
         if terminated:
@@ -549,6 +504,22 @@ class Snake:
         # color of the head
         self.head_color = yellow
 
+        # values to position text on screen
+        self.vert_shift = self.main_font.get_height() + 5
+        self.hor_shift = 5
+
+        # initialize audio mixer
+        pygame.mixer.init()
+
+        # load sounds
+        if self.sound_effects:
+            self.sound_chomp = pygame.mixer.Sound('sound/chomp.mp3')
+            self.sound_proximity = pygame.mixer.Sound('sound/prox_beep.wav')
+            self.sound_gameover = pygame.mixer.Sound('sound/game_over.wav')
+
+            # adjust volume
+            self.sound_proximity.set_volume(0.5)
+
     def get_eye_positions(self):
         # dictionary to map directions to eye positions
         if self.direction == 'UP': 
@@ -564,15 +535,11 @@ class Snake:
             return (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
                 (self.body[0][0] + self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
 
-    # display score onscreen
-    def show_score(self, color):
-        # create the display surface object 
-        self.score_surface = self.main_font.render('Punti: ' + str(self.score), True, color)
-
-        # display text
-        self.game_window.blit(self.score_surface, (4,0))
-
     def game_over(self):
+        # play sound
+        if self.sound_effects:
+            self.sound_gameover.play()
+
         # create a semi-transparent overlay with the size of the game window
         overlay = pygame.Surface((self.box_length, self.box_height))
 
@@ -597,14 +564,14 @@ class Snake:
         self.game_over_rect1 = self.game_over_surface1.get_rect()
         
         # set position of the text
-        self.game_over_rect.midtop = (self.box_length/2, self.box_height/4)
-        self.game_over_rect1.midtop = (self.box_length/2, self.box_height/4 + self.game_over_font.get_height())
+        self.game_over_rect.center = (self.box_length/2, self.box_height/2 - self.game_over_font.get_height()/2)
+        self.game_over_rect1.center = (self.box_length/2, self.box_height/2 + self.game_over_font.get_height()/2)
         
         # blit the text on screen
         self.game_window.blit(self.game_over_surface, self.game_over_rect)
         self.game_window.blit(self.game_over_surface1, self.game_over_rect1)
         pygame.display.flip()
-        
+
         # wait for user input to return
         while True:
             for event in pygame.event.get():
@@ -619,38 +586,44 @@ class Snake:
             for i in range(3)
         ])
 
-    # calculate shifts needed to unwrap coordinates
-    def unwrap_coords(self, coords):
-        # ensure float for calculation
-        coords = coords.astype(float)  
-        unwrapped_coords = np.copy(coords)
+    # display score onscreen
+    def display_score(self, color):
+        # create the display surface object 
+        self.score_surface = self.main_font.render('Punti: ' + str(self.score), True, color)
 
-        diffs = np.diff(coords)
-        shift = np.zeros(coords.shape[0])
-        
-        # shift elements by adding box_length when there is a negative difference greater than half the box size
-        shift[np.where(diffs < -self.box_length / 2)[0] + 1] = self.box_length
+        # display text
+        self.game_window.blit(self.score_surface, (self.hor_shift,0))
 
-        # shift elements by subtracting box_length when there is a positive difference greater than half the box size
-        shift[np.where(diffs > self.box_length / 2)[0] + 1] = -self.box_length
-        
-        unwrapped_coords += np.cumsum(shift)
-        return unwrapped_coords
+    # display info about state onscreen
+    def display_state_info(self, color, head_rect):
+        # add image corresponding to proximity state
+        if self.state_mode=='proximity':
+            if self.proximity != '':
+                # get the correct proximity image
+                proximity_image = self.proximity_images.get(self.proximity) 
+                # rotate it accordingly
+                proximity_image = pygame.transform.rotate(proximity_image, self.rotation_angles[self.direction])
+                # place it on the head of the snake
+                proximity_rect = proximity_image.get_rect(center=head_rect.center)
+                self.game_window.blit(proximity_image, proximity_rect)
+                # play sound
+                if self.sound_effects:
+                    self.sound_proximity.play()
 
-    # TODO without PBC is easy, it's just the mean(axis=0) of the body!
-    def calculate_com_with_pbc(self):
-        # convert body to numpy array for easier manipulation
-        body = np.array(self.body)
-        
-        # unwrap x and y coordinates
-        x_coords = self.unwrap_coords(body[:, 0])
-        y_coords = self.unwrap_coords(body[:, 1])
-        
-        # calculate mean positions of unwrapped coordinates
-        mean_x = np.mean(x_coords) % self.box_length
-        mean_y = np.mean(y_coords) % self.box_height
+        # same thing for the food compass
+        compass_image = self.compass_images.get(self.compass) 
+        compass_rect = compass_image.get_rect(center=head_rect.center)
+        self.game_window.blit(compass_image, compass_rect)
 
-        return np.array([mean_x, mean_y])
+        # simpler text version
+        if self.show_state_info:
+            self.compass_surface = self.main_font.render('Bussola: ' + str(self.compass), True, color)
+            self.compass_rect = self.score_surface.get_rect()
+            self.game_window.blit(self.compass_surface, (self.hor_shift, self.box_length-self.vert_shift))
+            if self.state_mode=='proximity':
+                self.body_info_surface = self.main_font.render('Prossimità: ' + str(self.proximity), True, color)
+                self.body_info_rect = self.body_info_surface.get_rect()
+                self.game_window.blit(self.body_info_surface, (self.hor_shift, self.box_length-self.vert_shift*1.8))
 
     # render the current frame
     def render_frame(self):
@@ -670,11 +643,6 @@ class Snake:
         pygame.draw.circle(self.game_window, black, eye1_center, self.eye_inner_radius)
         pygame.draw.circle(self.game_window, black, eye2_center, self.eye_inner_radius)
 
-        # # draw rest of the body
-        # for pos in self.body[1:]:
-        #     body_rect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
-        #     pygame.draw.rect(self.game_window, green, body_rect)
-
         # draw rest of the body with gradient colors
         for i, pos in enumerate(self.body[1:], start=1):
             factor = i / (self.body_size - 1)  # factor for interpolation
@@ -682,23 +650,13 @@ class Snake:
             body_rect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
             pygame.draw.rect(self.game_window, color, body_rect)
 
-        # draw center of mass (accounts for PBC)
-        if self.state_mode=='com_compass':
-            com = self.calculate_com_with_pbc()
-            pygame.draw.circle(self.game_window, blue, (int(com[0]), int(com[1])), self.eye_radius)
-
         # draw food
         food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
         pygame.draw.rect(self.game_window, red, food_rect, border_radius=self.food_radius)
         
         # display score and state info
-        self.show_score(white)
-        # self.show_state_info(white)
-
-        # get the correct compass image based on the current direction
-        compass_image = self.compass_images.get(self.compass) 
-        compass_rect = compass_image.get_rect(center=head_rect.center)
-        self.game_window.blit(compass_image, compass_rect)
+        self.display_score(white)
+        self.display_state_info(green, head_rect)
 
         # draw window border if PBC is not activated
         if not self.periodic:
@@ -706,6 +664,7 @@ class Snake:
 
         # FPS/refresh Rate (increase speed with score)
         self.fps.tick(self.snake_speed + self.score/10)
+
 
         # refresh game screen
         pygame.display.update()
