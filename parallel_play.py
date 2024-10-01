@@ -10,6 +10,37 @@ import multiprocessing
 
 # Function to run each snake game in a separate process
 def run_snake_game(policy, game_id):
+    # snake parameters
+    cell_size = 10
+    box_size = 30
+    snake_speed = 10
+
+    # game parameters
+    periodic = True
+    action_mode = 3
+    rand_init_body_length = True
+    rand_init_direction = False
+
+    # state mode
+    state_mode = 'simple'
+    # state_mode = 'proximity'
+
+    # visual and sound effects
+    show_compass = True
+    sound_effects = False
+    show_state_info = False
+
+    # window parameters
+    window_width = cell_size*box_size
+    margin = 0
+    # TODO add a countdown in snake!
+
+    # seed to initialize the RNG
+    seed = 666
+    seed_rng(seed, verbose=False)
+
+    shift_x = (window_width + margin)*(game_id-1)
+    window_position = (shift_x, 0)
     # seed to initialize the RNG
     seed = 666
     seed_rng(seed, verbose=False)
