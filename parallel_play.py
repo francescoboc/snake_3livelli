@@ -35,12 +35,9 @@ def run_snake_game(policy, game_id):
     margin = 0
     # TODO add a countdown in snake!
 
-    # seed to initialize the RNG
-    seed = 666
-    seed_rng(seed, verbose=False)
-
     shift_x = (window_width + margin)*(game_id-1)
     window_position = (shift_x, 0)
+
     # seed to initialize the RNG
     seed = 666
     seed_rng(seed, verbose=False)
@@ -60,18 +57,18 @@ def run_snake_game(policy, game_id):
     snake.play(policy)
 
 
-# Function to launch multiple games in parallel
+# function to launch multiple games in parallel
 def run_games_in_parallel(*policies):
-    processes = []
+    # processes = []
     for i, policy in enumerate(policies):
         # create a new process for each game with a unique policy
         p = multiprocessing.Process(target=run_snake_game, args=(policy, i+1))
-        processes.append(p)
+        # processes.append(p)
         p.start()
 
-    # wait for all processes to finish
-    for p in processes:
-        p.join()
+    # # wait for all processes to finish
+    # for p in processes:
+    #     p.join()
 
 if __name__ == "__main__":
     # snake parameters
@@ -107,5 +104,5 @@ if __name__ == "__main__":
     pi2 = load_user_policy(filename, folder)
 
     # Run the games in parallel
-    run_games_in_parallel(pi1, pi2, pi1, pi2)
+    run_games_in_parallel(pi1, pi1, pi1, pi1)
     # run_games_in_parallel(pi1, pi2)
