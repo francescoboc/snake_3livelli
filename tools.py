@@ -100,3 +100,4 @@ def load_user_policy(filename, folder, verbose=True):
 # change position of window
 def set_window_position(x, y):
     os.environ['SDL_VIDEO_WINDOW_POS'] = f"{x},{y}"
+    print(x,y)

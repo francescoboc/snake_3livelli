@@ -42,38 +42,39 @@ def run_games_in_parallel(*policies):
     for p in processes:
         p.join()
 
-# snake parameters
-cell_size = 20
-box_size = 30
-snake_speed = 10
+if __name__ == "__main__":
+    # snake parameters
+    cell_size = 10
+    box_size = 30
+    snake_speed = 10
 
-# game parameters
-periodic = True
-action_mode = 3
-rand_init_body_length = True
-rand_init_direction = False
+    # game parameters
+    periodic = True
+    action_mode = 3
+    rand_init_body_length = True
+    rand_init_direction = False
 
-# state mode
-state_mode = 'simple'
-# state_mode = 'proximity'
+    # state mode
+    state_mode = 'simple'
+    # state_mode = 'proximity'
 
-# visual and sound effects
-show_compass = True
-sound_effects = False
-show_state_info = False
+    # visual and sound effects
+    show_compass = True
+    sound_effects = False
+    show_state_info = False
 
-# window parameters
-window_width = cell_size*box_size
-margin = 0
-# TODO add a countdown in snake!
+    # window parameters
+    window_width = cell_size*box_size
+    margin = 0
+    # TODO add a countdown in snake!
 
-# Define different policies (pi1, pi2, pi3...)
-n_episodes = int(1e7)
-pi1 = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
+    # Define different policies (pi1, pi2, pi3...)
+    n_episodes = int(1e7)
+    pi1 = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
-folder, filename = 'user_policies', 'test'
-pi2 = load_user_policy(filename, folder)
+    folder, filename = 'user_policies', 'test'
+    pi2 = load_user_policy(filename, folder)
 
-# Run the games in parallel
-run_games_in_parallel(pi1, pi2, pi1)
-# run_games_in_parallel(pi1, pi2)
+    # Run the games in parallel
+    run_games_in_parallel(pi1, pi2, pi1, pi2)
+    # run_games_in_parallel(pi1, pi2)
