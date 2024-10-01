@@ -18,6 +18,8 @@ class Snake:
             show_compass=True,
             sound_effects=False,
             show_state_info=False,
+            window_position=None,
+            team_name=None,
             verbose=True,
             food_rew=1.0, 
             lose_rew=-10.0, 
@@ -59,6 +61,9 @@ class Snake:
         self.show_compass = show_compass
         self.sound_effects = sound_effects
         self.show_state_info = show_state_info
+
+        self.window_position = window_position
+        self.team_name = team_name
 
         # load compass images
         if self.show_compass:
@@ -434,7 +439,6 @@ class Snake:
     def play(self, policy=None, render=True):
         if render:
             self.init_render()
-            self.init_render()
 
         # reset the game
         state = self.reset()
@@ -468,12 +472,17 @@ class Snake:
 
     # initialize rendering environment (pygame)
     def init_render(self):
+        # set position of game window
+        if self.window_position is not None:
+            set_window_position(*self.window_position)  
+
         # initialise pygame 
+        pygame.init()
         pygame.init()
 
         # initialise game window (add height of info bar)
         pygame.display.set_caption('Snake')
-        self.game_window = pygame.display.set_mode((self.box_length, self.box_height))
+        self.game_window = pygame.display.set_mode((self.box_length, self.box_height), pygame.NOFRAME)
         
         # FPS (frames per second) controller
         self.fps = pygame.time.Clock()
@@ -662,9 +671,9 @@ class Snake:
         self.display_score(white)
         self.display_state_info(green, head_rect)
 
-        # draw window border if PBC is not activated
-        if not self.periodic:
-            pygame.draw.rect(self.game_window, red, self.game_window.get_rect(), 2)
+        # draw window border (if PBC is not activated)
+        # if not self.periodic:
+        pygame.draw.rect(self.game_window, white, self.game_window.get_rect(), 1)
 
         # FPS/refresh Rate (increase speed with score)
         self.fps.tick(self.snake_speed + self.score/10)
