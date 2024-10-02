@@ -478,7 +478,6 @@ class Snake:
 
         # initialise pygame 
         pygame.init()
-        pygame.display.init()
 
         # initialise game window (add height of info bar)
         pygame.display.set_caption('Snake')
