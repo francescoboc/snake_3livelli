@@ -581,6 +581,8 @@ class Snake:
         # blit the text on screen
         self.game_window.blit(self.game_over_surface, self.game_over_rect)
         self.game_window.blit(self.game_over_surface1, self.game_over_rect1)
+
+        # refresh game screen
         pygame.display.flip()
 
         # wait for user input to return
@@ -679,3 +681,6 @@ class Snake:
 
         # refresh game screen
         pygame.display.flip()
+
+        # fix for macOS
+        pygame.event.get()
