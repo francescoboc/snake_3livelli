@@ -68,14 +68,14 @@ class Snake:
         # load compass images
         if self.show_compass:
             self.compass_images = {
-                'N': pygame.image.load('img/north.png'),
-                'NE': pygame.image.load('img/north_east.png'),
-                'E': pygame.image.load('img/east.png'),
-                'SE': pygame.image.load('img/south_east.png'),
-                'S': pygame.image.load('img/south.png'),
-                'SW': pygame.image.load('img/south_west.png'),
-                'W': pygame.image.load('img/west.png'),
-                'NW': pygame.image.load('img/north_west.png')
+                'N': pygame.image.load('./img/north.png'),
+                'NE': pygame.image.load('./img/north_east.png'),
+                'E': pygame.image.load('./img/east.png'),
+                'SE': pygame.image.load('./img/south_east.png'),
+                'S': pygame.image.load('./img/south.png'),
+                'SW': pygame.image.load('./img/south_west.png'),
+                'W': pygame.image.load('./img/west.png'),
+                'NW': pygame.image.load('./img/north_west.png')
             }
 
             # resize images
@@ -85,13 +85,13 @@ class Snake:
             # load proximity images
             if self.state_mode == 'proximity':
                 self.proximity_images = {
-                    'f': pygame.image.load('img/prox_f.png'),
-                    'l': pygame.image.load('img/prox_l.png'),
-                    'r': pygame.image.load('img/prox_r.png'),
-                    'fl': pygame.image.load('img/prox_fl.png'),
-                    'fr': pygame.image.load('img/prox_fr.png'),
-                    'lr': pygame.image.load('img/prox_lr.png'),
-                    'flr': pygame.image.load('img/prox_flr.png'),
+                    'f': pygame.image.load('./img/prox_f.png'),
+                    'l': pygame.image.load('./img/prox_l.png'),
+                    'r': pygame.image.load('./img/prox_r.png'),
+                    'fl': pygame.image.load('./img/prox_fl.png'),
+                    'fr': pygame.image.load('./img/prox_fr.png'),
+                    'lr': pygame.image.load('./img/prox_lr.png'),
+                    'flr': pygame.image.load('./img/prox_flr.png'),
                 }
 
                 # resize images
@@ -524,9 +524,9 @@ class Snake:
 
         # load sounds
         if self.sound_effects:
-            self.sound_chomp = pygame.mixer.Sound('sound/chomp.mp3')
-            self.sound_proximity = pygame.mixer.Sound('sound/prox_beep.wav')
-            self.sound_gameover = pygame.mixer.Sound('sound/game_over.wav')
+            self.sound_chomp = pygame.mixer.Sound('./sound/chomp.mp3')
+            self.sound_proximity = pygame.mixer.Sound('./sound/prox_beep.wav')
+            self.sound_gameover = pygame.mixer.Sound('./sound/game_over.wav')
 
             # adjust volume
             self.sound_proximity.set_volume(0.5)
