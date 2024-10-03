@@ -91,18 +91,18 @@ def calculate_size_and_positions(n_teams, box_size, verbose=False):
             shift_y = rigid_shift_y
             window_positions.append((shift_x, shift_y))
 
-    # elif n_teams == 3:
-    #     cell_size = int(screen_heigth//2)//box_size
-    #     window_width = cell_size*box_size - 2
-    #     window_positions = []
-    #     rigid_shift_x = (screen_width-window_width*3)//2
-    #     rigid_shift_y = (screen_heigth-window_width)//2
-    #     for c in range(3):
-    #         shift_x = window_width*c + rigid_shift_x
-    #         shift_y = rigid_shift_y
-    #         window_positions.append((shift_x, shift_y))
+    elif n_teams == 4:
+        cell_size = min( (screen_width//2)//box_size, (screen_heigth//2)//box_size )
+        window_width = cell_size*box_size - 2
+        window_positions = []
+        rigid_shift_x = (screen_width-window_width*2)//2
+        for l in range(2):
+            for c in range(2):
+                shift_x = window_width*c + rigid_shift_x
+                shift_y = window_width*l
+                window_positions.append((shift_x, shift_y))
 
-    elif n_teams == 6:
+    elif n_teams == 5 or n_teams == 6:
         cell_size = min( (screen_width//3)//box_size, (screen_heigth//2)//box_size )
         window_width = cell_size*box_size - 2
         window_positions = []
