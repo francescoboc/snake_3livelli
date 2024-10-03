@@ -37,7 +37,6 @@ def demo_1player_nocompass():
     # run the games in parallel
     run_games_in_parallel(policies, shared_vars)
 
-# if __name__ == "__main__":
 def test():
     # snake parameters
     box_size = 30
@@ -79,11 +78,16 @@ def test():
     # run the games in parallel
     run_games_in_parallel(policies, shared_vars)
 
-if len(sys.argv) == 1:
-    print('Call with one argument!')
-else:
-    mode = sys.argv[1]
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print('Please specify one game mode!')
+    else:
+        game_mode = sys.argv[1]
 
-    if mode == 'demo':
-        demo_1player_nocompass()
+        if game_mode == 'demo':
+            demo_1player_nocompass()
+        else:
+            print('Game mode not recognized!')
+
+
 
