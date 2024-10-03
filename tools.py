@@ -1,7 +1,10 @@
-import pygame
 import random, sys, signal, time, os
 from tqdm import tqdm
 import numpy as np
+
+# hide pygame welcome message
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import pygame
 
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
@@ -100,4 +103,3 @@ def load_user_policy(filename, folder, verbose=True):
 # change position of window
 def set_window_position(x, y):
     os.environ['SDL_VIDEO_WINDOW_POS'] = f"{x},{y}"
-    print(x,y)

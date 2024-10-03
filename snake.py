@@ -5,6 +5,11 @@
 
 from tools import *
 
+# check if python is running on macOS
+import platform
+if platform.system() == 'Darwin': ON_MAC = True
+else: ON_MAC = False
+
 class Snake:
     def __init__(self, 
             action_mode=3, 
@@ -683,4 +688,6 @@ class Snake:
         pygame.display.flip()
 
         # fix for macOS
-        pygame.event.get()
+        if ON_MAC: pygame.event.get()
+        # questo forse fixa il problema dei tasti non responsive
+        # pygame.event.pump()
