@@ -81,8 +81,8 @@ def save_policy(periodic, box_size, action_mode, state_mode, n_episodes):
     return pi_star
 
 # load and convert a text policy to a dictionary
-def load_user_policy(filename, folder, verbose=True):
-    path = f'{folder}/{filename}.txt'
+def load_user_policy(filename, folder, verbose=False):
+    path = f'{folder}/{filename}'
     text_array = np.loadtxt(path, dtype='str')
     policy_dict = {}
     for row in text_array:
