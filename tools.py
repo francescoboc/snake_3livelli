@@ -103,3 +103,75 @@ def load_user_policy(filename, folder, verbose=True):
 # change position of window
 def set_window_position(x, y):
     os.environ['SDL_VIDEO_WINDOW_POS'] = f"{x},{y}"
+
+def calculate_size_and_positions(n_teams, box_size, verbose=False):
+    # get screen resolution
+    pygame.display.init()
+    display_sizes = pygame.display.get_desktop_sizes()
+    pygame.display.quit()
+    if len(display_sizes)==1:
+        resolution = display_sizes[0]
+        if verbose: print(f'Primary screen detected with resolution {resolution}')
+    else:
+        resolution = display_sizes[1]
+        if verbose: print(f'Secondary screen detected with resolution {resolution}')
+    screen_width, screen_heigth = resolution[0], resolution[1]
+
+    if n_teams == 1:
+        cell_size = int(screen_heigth//1.25)//box_size
+        window_width = cell_size*box_size - 2
+        window_positions = []
+        rigid_shift_x = (screen_width-window_width)//2
+        rigid_shift_y = (screen_heigth-window_width)//2
+        for c in range(2):
+            shift_x = window_width*c + rigid_shift_x
+            shift_y = rigid_shift_y
+            window_positions.append((shift_x, shift_y))
+
+    elif n_teams == 2:
+        cell_size = int(screen_heigth//1.5)//box_size
+        window_width = cell_size*box_size - 2
+        window_positions = []
+        rigid_shift_x = (screen_width-window_width*2)//2
+        rigid_shift_y = (screen_heigth-window_width)//2
+        for c in range(2):
+            shift_x = window_width*c + rigid_shift_x
+            shift_y = rigid_shift_y
+            window_positions.append((shift_x, shift_y))
+
+    elif n_teams == 3:
+        cell_size = int(screen_heigth//2)//box_size
+        window_width = cell_size*box_size - 2
+        window_positions = []
+        rigid_shift_x = (screen_width-window_width*3)//2
+        rigid_shift_y = (screen_heigth-window_width)//2
+        for c in range(3):
+            shift_x = window_width*c + rigid_shift_x
+            shift_y = rigid_shift_y
+            window_positions.append((shift_x, shift_y))
+
+    # elif n_teams == 3:
+    #     cell_size = int(screen_heigth//2)//box_size
+    #     window_width = cell_size*box_size - 2
+    #     window_positions = []
+    #     rigid_shift_x = (screen_width-window_width*3)//2
+    #     rigid_shift_y = (screen_heigth-window_width)//2
+    #     for c in range(3):
+    #         shift_x = window_width*c + rigid_shift_x
+    #         shift_y = rigid_shift_y
+    #         window_positions.append((shift_x, shift_y))
+
+    elif n_teams == 6:
+        cell_size = min( (screen_width//3)//box_size, (screen_heigth//2)//box_size )
+        window_width = cell_size*box_size - 2
+        window_positions = []
+        rigid_shift_x = (screen_width-window_width*3)//2
+        for l in range(2):
+            for c in range(3):
+                shift_x = window_width*c + rigid_shift_x
+                shift_y = window_width*l
+                window_positions.append((shift_x, shift_y))
+
+    elif n_teams > 6: raise Exception('The maximum number of teams is 6!')
+
+    return cell_size, window_positions

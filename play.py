@@ -25,7 +25,7 @@ state_mode = 'simple'
 # state_mode = 'proximity'
 
 # visual and sound effects
-show_compass = False
+show_compass = True
 sound_effects = True
 show_state_info = False
 

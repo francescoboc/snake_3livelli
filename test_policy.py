@@ -13,11 +13,11 @@ periodic = True
 
 action_mode = 3
 
-state_mode = 'simple'
+# state_mode = 'simple'
 # state_mode = 'body_length'
 # state_mode = 'tail_compass'
 # state_mode = 'com_compass'
-# state_mode = 'proximity'
+state_mode = 'proximity'
 # state_mode = 'spirality'
 
 rand_init_body_length = False

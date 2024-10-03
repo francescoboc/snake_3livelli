@@ -1,8 +1,3 @@
-# ****************** Boccardo Gagliardi @PiMlB MALGA  ***************
-# SNAKE ENVIRONMENT: evolution, reward, state, rendering
-# 
-# ********************************************************************
-
 from tools import *
 
 # check if python is running on macOS
@@ -687,7 +682,5 @@ class Snake:
         # refresh game screen
         pygame.display.flip()
 
-        # fix for macOS
-        if ON_MAC: pygame.event.get()
-        # questo forse fixa il problema dei tasti non responsive
-        # pygame.event.pump()
+        # fix for macOS screen refresh on multiprocessing
+        if ON_MAC: pygame.event.pump()
