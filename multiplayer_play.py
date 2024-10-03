@@ -7,7 +7,6 @@ from multiplayer_tools import *
 
 # TODO add a countdown in snake!
 
-
 def demo_1player_nocompass():
     # snake parameters
     box_size = 30
@@ -38,42 +37,42 @@ def demo_1player_nocompass():
     # run the games in parallel
     run_games_in_parallel(policies, shared_vars)
 
-if __name__ == "__main__":
-    # snake parameters
-    box_size = 30
-    snake_speed = 10
+# if __name__ == "__main__":
+#     # snake parameters
+#     box_size = 30
+#     snake_speed = 10
 
-    # game parameters
-    periodic = True
-    action_mode = 3
-    rand_init_body_length = True
-    rand_init_direction = False
+#     # game parameters
+#     periodic = True
+#     action_mode = 3
+#     rand_init_body_length = True
+#     rand_init_direction = False
 
-    # state mode
-    state_mode = 'simple'
-    # state_mode = 'proximity'
+#     # state mode
+#     state_mode = 'simple'
+#     # state_mode = 'proximity'
 
-    # visual and sound effects
-    show_compass = True
-    sound_effects = False
-    show_state_info = False
+#     # visual and sound effects
+#     show_compass = True
+#     sound_effects = False
+#     show_state_info = False
 
-    # put all shared variables into a list for convenience
-    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
+#     # put all shared variables into a list for convenience
+#     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+#         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
 
-    # load different policies (pi1, pi2, pi3...)
-    n_episodes = int(1e7)
-    pi1 = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
+#     # load different policies (pi1, pi2, pi3...)
+#     n_episodes = int(1e7)
+#     pi1 = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
-    # folder, filename = 'user_policies', 'test'
-    # pi2 = load_user_policy(filename, folder)
+#     # folder, filename = 'user_policies', 'test'
+#     # pi2 = load_user_policy(filename, folder)
 
-    # policies = [None]  
-    # policies = [None, pi1]  
-    policies = [None, pi1, pi1]  
-    # policies = [pi1, pi1, pi1, pi1]
-    # policies = [pi1, pi1, pi1, pi1, pi1, pi1]  
+#     # policies = [None]  
+#     # policies = [None, pi1]  
+#     policies = [None, pi1, pi1]  
+#     # policies = [pi1, pi1, pi1, pi1]
+#     # policies = [pi1, pi1, pi1, pi1, pi1, pi1]  
 
-    # run the games in parallel
-    run_games_in_parallel(policies, shared_vars)
+#     # run the games in parallel
+#     run_games_in_parallel(policies, shared_vars)
