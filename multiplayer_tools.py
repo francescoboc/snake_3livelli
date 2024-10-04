@@ -3,7 +3,7 @@ from snake import *
 import multiprocessing
 
 # function to run each snake game in a separate process
-def run_snake_game(policy, game_id, window_position, cell_size, shared_vars, seed=None):
+def run_snake_game(policy, team_name, game_id, window_position, cell_size, shared_vars, seed=None, scores_dict=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
@@ -13,13 +13,17 @@ def run_snake_game(policy, game_id, window_position, cell_size, shared_vars, see
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, window_position, 'Nome squadra 00', verbose=False)
+            show_state_info, window_position, team_name, verbose=False)
 
     # Play the game with the provided policy
-    snake.play(policy)
+    score, truncated = snake.play(policy)
+
+    # append the score to the shared scores list
+    if scores_dict is not None:
+        scores_dict[team_name] = score
 
 # function to launch multiple games in parallel
-def run_games_in_parallel(policies, shared_vars):
+def run_games_in_parallel(policies, team_names, shared_vars):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
@@ -34,17 +38,25 @@ def run_games_in_parallel(policies, shared_vars):
     seed = 666
     # seed = None
 
+    # create a multiprocessing manager to store scores
+    manager = multiprocessing.Manager()
+    scores_dict = manager.dict()
+
     # create a new process for each game
     processes = []
-    for i, policy in enumerate(policies):
-        p = multiprocessing.Process(target=run_snake_game, args=(policy, i+1,
-            window_positions[i], cell_size, shared_vars, seed))
+    for i in range(n_teams):
+        policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
+        game_id = i+1
+        p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
+            i+1, window_position, cell_size, shared_vars, seed, scores_dict))
         processes.append(p)
         p.start()
 
     # wait for all processes to finish
     for p in processes:
         p.join()
+
+    return dict(scores_dict)
 
 def calculate_size_and_positions(n_teams, box_size, verbose=False):
     # get screen resolution
@@ -118,3 +130,23 @@ def calculate_size_and_positions(n_teams, box_size, verbose=False):
     elif n_teams > 6: raise Exception('The maximum number of teams is 6!')
 
     return cell_size, window_positions
+
+def display_winner(team_name, score):
+        # initialise pygame  display module
+        pygame.display.init()
+
+        # initialise game window (add height of info bar)
+        self.game_window = pygame.display.set_mode((self.box_length, self.box_height), pygame.NOFRAME)
+        
+        # create main font object 
+        self.main_font = pygame.font.SysFont('arial', 22)
+
+        # wait for user input to exit
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
+                        and event.key == pygame.K_ESCAPE):
+                    pygame.display.quit()
+                    return
+            
+

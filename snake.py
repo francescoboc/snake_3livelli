@@ -457,8 +457,7 @@ class Snake:
             if terminated or truncated:
                 if render:
                     self.game_over()
-                    pygame.quit()
-                    sys.exit()
+                    return self.score, truncated
                 else:
                     return self.score, truncated
 

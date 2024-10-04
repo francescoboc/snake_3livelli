@@ -1,4 +1,4 @@
-import random, sys, signal, time, os
+import random, sys, signal, os
 from tqdm import tqdm
 import numpy as np
 
