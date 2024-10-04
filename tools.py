@@ -46,7 +46,7 @@ def read_keys():
                 return 'LEFT'
             if event.key == pygame.K_RIGHT:
                 return 'RIGHT'
-    return "NO_TURN"
+    return 'NO_TURN'
 
 
 # initialise the RNG with a given seed or a random one

@@ -13,7 +13,7 @@ def run_snake_game(policy, game_id, window_position, cell_size, shared_vars, see
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, window_position, 'test team', verbose=False)
+            show_state_info, window_position, 'Nome squadra 00', verbose=False)
 
     # Play the game with the provided policy
     snake.play(policy)
@@ -32,6 +32,7 @@ def run_games_in_parallel(policies, shared_vars):
 
     # seed to initialize the RNG
     seed = 666
+    # seed = None
 
     # create a new process for each game
     processes = []
@@ -58,6 +59,7 @@ def calculate_size_and_positions(n_teams, box_size, verbose=False):
         if verbose: print(f'Secondary screen detected with resolution {resolution}')
     screen_width, screen_heigth = resolution[0], resolution[1]
 
+    # calculate window size and positions depending on number of teams
     if n_teams == 1:
         cell_size = int(screen_heigth//1.25)//box_size
         window_width = cell_size*box_size - 2

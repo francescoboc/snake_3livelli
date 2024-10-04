@@ -494,13 +494,13 @@ class Snake:
 
         # radii to draw the rounded edges 
         self.food_radius = self.cell_size // 3
-        snake_radius = self.cell_size // 5
+        self.snake_radius = self.cell_size // 5
 
         self.direction_corners = {
-            'UP': (snake_radius, snake_radius, 0, 0),
-            'RIGHT': (0, snake_radius, 0, snake_radius),
-            'DOWN': (0, 0, snake_radius, snake_radius),
-            'LEFT': (snake_radius, 0, snake_radius, 0)
+            'UP': (self.snake_radius, self.snake_radius, 0, 0),
+            'RIGHT': (0, self.snake_radius, 0, self.snake_radius),
+            'DOWN': (0, 0, self.snake_radius, self.snake_radius),
+            'LEFT': (self.snake_radius, 0, self.snake_radius, 0)
         }
 
         # eyes parameters
@@ -602,10 +602,32 @@ class Snake:
     # display score onscreen
     def display_score(self, color):
         # create the display surface object 
-        self.score_surface = self.main_font.render('Punti: ' + str(self.score), True, color)
+        self.score_surface = self.main_font.render(f'Punti: {self.score}', True, color)
 
         # display text
-        self.game_window.blit(self.score_surface, (self.hor_shift,0))
+        self.game_window.blit(self.score_surface, (self.hor_shift, 0))
+
+    # display team name onscreen
+    def display_team_name(self, text_color, background_color):
+        # create the display surface object 
+        self.team_name_surface = self.main_font.render(self.team_name, True, text_color)
+
+        # calculate the position to center the text
+        text_rect = self.team_name_surface.get_rect(center=(self.box_length // 2, self.team_name_surface.get_height() // 2))
+
+        # Create a new surface for the rounded rectangle with transparency
+        background_surface = pygame.Surface((text_rect.width + 10, text_rect.height + 5), pygame.SRCALPHA)
+        background_surface.set_alpha(int(0.7 * 255))  # Set transparency 
+
+        # Draw a rounded rectangle on the background surface
+        pygame.draw.rect(background_surface, background_color, background_surface.get_rect(), 
+                border_bottom_left_radius = self.snake_radius, border_bottom_right_radius = self.snake_radius)
+
+        # Blit the rounded rectangle to the game window at the calculated position
+        self.game_window.blit(background_surface, (text_rect.x - 5, text_rect.y - 2.5))
+
+        # display the black text on top
+        self.game_window.blit(self.team_name_surface, text_rect.topleft)
 
     # display info about state onscreen
     def display_state_info(self, color, head_rect):
@@ -631,16 +653,23 @@ class Snake:
 
         # simpler text version
         if self.show_state_info:
-            self.compass_surface = self.main_font.render('Bussola: ' + str(self.compass), True, color)
+            self.compass_surface = self.main_font.render(f'Bussola: {self.compass}', True, color)
             self.compass_rect = self.score_surface.get_rect()
             self.game_window.blit(self.compass_surface, (self.hor_shift, self.box_length-self.vert_shift))
             if self.state_mode=='proximity':
-                self.body_info_surface = self.main_font.render('Prossimità: ' + str(self.proximity), True, color)
+                self.body_info_surface = self.main_font.render(f'Prossimità: {self.proximity}', True, color)
                 self.body_info_rect = self.body_info_surface.get_rect()
                 self.game_window.blit(self.body_info_surface, (self.hor_shift, self.box_length-self.vert_shift*1.8))
 
     # render the current frame
     def render_frame(self):
+
+        # wait for user input to return
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
+                    and event.key == pygame.K_ESCAPE):
+                return
+        
         # clear the screen (fill with black)
         self.game_window.fill(black)
 
@@ -671,6 +700,10 @@ class Snake:
         # display score and state info
         self.display_score(white)
         self.display_state_info(green, head_rect)
+
+        # display team name
+        if self.team_name != None:
+            self.display_team_name(black, white)
 
         # draw window border (if PBC is not activated)
         # if not self.periodic:
