@@ -95,8 +95,53 @@ def challenge(path_to_folder):
     # run the games in parallel
     scores_dict = run_games_in_parallel(policies, team_names, shared_vars)
 
-    # find winners
+    # get team ranking
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
+    winner_score, winner_name = ranking[0][0], ranking[0][1]
+
+    display_winner(winner_score, winner_name)
+
+# challenge all the policies (in .txt format) inside a folder
+def statistical_challenge(path_to_folder):
+    # snake parameters
+    box_size = 30
+    snake_speed = 10
+
+    # game parameters
+    periodic = True
+    action_mode = 3
+    rand_init_body_length = False
+    rand_init_direction = False
+
+    # state mode
+    state_mode = 'simple'
+    # state_mode = 'proximity'
+
+    # visual and sound effects
+    show_compass = True
+    sound_effects = False
+    show_state_info = False
+
+    # put all shared variables into a list for convenience
+    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
+
+    policies, team_names = [], []
+    for filename in sorted(os.listdir(path_to_folder)):
+        policies.append(load_user_policy(filename, path_to_folder))
+        team_names.append(filename.replace('.txt',''))
+
+    # run the games in parallel
+    scores_dict = test_policies_in_parallel(policies, team_names, shared_vars)
+
+    # get team ranking
+    ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
+    winner_score, winner_name = ranking[0][0], ranking[0][1]
+
+    # TODO display histogram
+    with open('ranking.txt', 'w') as file:
+        for score, team_name in ranking:
+            file.write(f"{score:.3f}\t{team_name}\n")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -114,6 +159,12 @@ if __name__ == "__main__":
             if len(sys.argv) == 3: 
                 path_to_folder = sys.argv[2]
                 challenge(path_to_folder)
+            else: 
+                print('Please specify path to policies folder')
+        elif game_mode == 'statistical_challenge':
+            if len(sys.argv) == 3: 
+                path_to_folder = sys.argv[2]
+                statistical_challenge(path_to_folder)
             else: 
                 print('Please specify path to policies folder')
         else:
