@@ -139,7 +139,8 @@ def statistical_challenge(path_to_folder):
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
     # TODO display histogram
-    with open('ranking.txt', 'w') as file:
+    save_path = f'{path_to_folder}/ranking.txt'
+    with open(save_path, 'w') as file:
         for score, team_name in ranking:
             file.write(f"{score:.3f}\t{team_name}\n")
 
