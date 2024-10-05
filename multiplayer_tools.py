@@ -2,51 +2,41 @@ from tools import *
 from snake import *
 import multiprocessing
 
-# function to test a single policy
-def test_policy(policy, team_name, game_id, shared_vars, seed=None, scores_dict=None, n_games=1000):
+# test a single policy
+def test_policy(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
 
-    seed_rng(seed, verbose=False)
+    # this doesn't really matter because we are not rendering the game window
+    cell_size = 1
 
     # create snake game object
-    snake = Snake(action_mode, state_mode, 10, box_size, snake_speed, periodic, 
+    snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, None, team_name, verbose=False)
+            show_state_info, team_name, window_position=None, verbose=False)
 
-    seeds, scores = [], []
-    truncated_count = 0
-    # for n in tqdm(range(n_games), ascii=' █') :
+    scores = []
     for n in range(n_games):
         seed = seed_rng(verbose=False)
         score, truncated = snake.play(policy, render=False)
-        if not truncated:
-            seeds.append(seed)
-            scores.append(score)
-        else:
-            truncated_count += 1
+        scores.append(score)
 
-    if len(scores) != 0:
-        mean_score = np.mean(scores)
-    else:
-        mean_score = 0
+    # calculte mean score
+    mean_score = np.mean(scores)
 
-    # append the score to the shared scores list
+    # append mean score to the shared scores list
     if scores_dict is not None:
         scores_dict[team_name] = mean_score
 
-# function to test multiple policies in parallel
-def test_policies_in_parallel(policies, team_names, shared_vars):
+# test multiple policies in parallel
+def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
 
     # count policies to get number of teams
     n_teams = len(policies)
-
-    # seed to initialize the RNG
-    seed = None
 
     # create a multiprocessing manager to store scores
     manager = multiprocessing.Manager()
@@ -56,9 +46,8 @@ def test_policies_in_parallel(policies, team_names, shared_vars):
     processes = []
     for i in range(n_teams):
         policy, team_name, = policies[i], team_names[i],
-        game_id = i+1
         p = multiprocessing.Process(target=test_policy, args=(policy, team_name, 
-            i+1, shared_vars, seed, scores_dict))
+            shared_vars, scores_dict, n_games))
         processes.append(p)
         p.start()
 
@@ -68,25 +57,67 @@ def test_policies_in_parallel(policies, team_names, shared_vars):
 
     return dict(scores_dict)
 
-# function to run a single snake game
-def run_snake_game(policy, team_name, game_id, window_position, cell_size, shared_vars, seed=None, scores_dict=None):
+# run a single snake game (simple non-parallel version)
+def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
 
+    # seed the RNG
     seed_rng(seed, verbose=False)
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, window_position, team_name, verbose=False)
+            show_state_info, team_name, window_position, verbose=False)
 
-    # Play the game with the provided policy
+    # play the game with the provided policy
     score, truncated = snake.play(policy)
+
+# run a single snake game (with multiprocessing barrier to wait for the other games to end)
+def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars, seed=None, scores_dict=None, game_over_barrier=None, winner_display_event=None):
+    # unpack shared variables
+    box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info = shared_vars 
+
+    # seed the RNG
+    seed_rng(seed, verbose=False)
+
+    # create snake game object
+    snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
+            rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
+            show_state_info, team_name, window_position, verbose=False)
+
+    # play until game over
+    snake.init_render()
+    state = snake.reset()
+
+    # game loop
+    while True:
+        if policy is None: action = read_keys()
+        else: action = policy[state]
+        next_state, reward, terminated, truncated = snake.step(action)
+        if terminated or truncated:
+            # go in game_over state but without waiting for the user to press ESC
+            # (the games will be all simultaneously closed by the main thread)
+            snake.game_over(wait_for_user=False)
+            break
+        snake.render_frame()
+        state = next_state
 
     # append the score to the shared scores list
     if scores_dict is not None:
-        scores_dict[team_name] = score
+        scores_dict[team_name] = snake.score
+
+    # wait for all games to finish before proceeding
+    if game_over_barrier is not None:
+        game_over_barrier.wait()
+
+    # keep the game window open until the winner is displayed
+    if winner_display_event is not None:
+        while not winner_display_event.is_set():
+            # prevent window from freezing
+            pygame.event.pump()  
 
 # function to launch multiple games in parallel
 def run_games_in_parallel(policies, team_names, shared_vars):
@@ -101,28 +132,48 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
 
     # seed to initialize the RNG
-    seed = 666
-    # seed = None
+    seed = None
 
     # create a multiprocessing manager to store scores
     manager = multiprocessing.Manager()
     scores_dict = manager.dict()
 
+    # create a barrier for all games to reach game_over 
+    # (+1 is to include the main process as well)
+    game_over_barrier = multiprocessing.Barrier(n_teams+1)
+
+    # create an event to signal the end of the winner display
+    winner_display_event = multiprocessing.Event()
+
     # create a new process for each game
     processes = []
     for i in range(n_teams):
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
-        game_id = i+1
-        p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
-            i+1, window_position, cell_size, shared_vars, seed, scores_dict))
+        p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
+            policy, team_name, window_position, cell_size, shared_vars, 
+            seed, scores_dict, game_over_barrier, winner_display_event))
         processes.append(p)
         p.start()
+
+    # wait for all games to reach the game_over state (main process waits here too)
+    game_over_barrier.wait()
+
+    # once all the games has reached the game_over state, calculte team ranking
+    scores_dict = dict(scores_dict)
+    ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
+    winner_score, winner_name = ranking[0][0], ranking[0][1]
+
+    # display winner on a new sindow
+    display_winner(winner_score, winner_name)
+
+    # Signal all games to close
+    winner_display_event.set()
 
     # wait for all processes to finish
     for p in processes:
         p.join()
 
-    return dict(scores_dict)
+    return scores_dict
 
 # get screen resolution
 def get_screen_resolution(verbose=False):
@@ -203,63 +254,114 @@ def calculate_size_and_positions(n_teams, box_size):
 
     return cell_size, window_positions
 
+
+import time
 def display_winner(score, team_name):
-    # initialize ygame display and font modules
+    # Initialize pygame display and font modules
     pygame.display.init()
     pygame.font.init()
 
-    # calculate desired window size
-    screen_width, screen_heigth = get_screen_resolution()
-    window_size = (screen_width//3, screen_heigth//3)
+    # Calculate desired window size
+    screen_width, screen_height = get_screen_resolution()
+    window_size = (screen_width // 3, screen_height // 3)
 
-    # create a window
+    # Create a window without frame
     screen = pygame.display.set_mode(window_size, pygame.NOFRAME)
 
-    # set font and colors
-    font = pygame.font.SysFont('arial', 50, bold=True)
+    # Set retro style font, colors, and background
+    font = pygame.font.Font(pygame.font.match_font('PressStart2P', bold=True), 30)  # Retro pixelated font
     text_color = white
     bg_color = black
 
-    # create the winner text
-    winner_text = f"Winner: {team_name} - Score: {score}"
+    # Create the winner and score text
+    winner_text = f"AND THE WINNER IS {team_name}"
+    score_text = f"SCORE {score}"
     winner_surface = font.render(winner_text, True, text_color)
+    score_surface = font.render(score_text, True, text_color)
 
-    # get the size of the text and screen
-    text_rect = winner_surface.get_rect(center=(window_size[0]//2, window_size[1]//2))
+    # Get the size of the text and screen
+    winner_rect = winner_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 - 40))
+    score_rect = score_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 40))
 
-    # fill background
+    # Fill background
     screen.fill(bg_color)
 
-    # blit the text onto the screen, centered
-    screen.blit(winner_surface, text_rect)
+    # Blit the text onto the screen, centered
+    screen.blit(winner_surface, winner_rect)
+    screen.blit(score_surface, score_rect)
 
-    # update the display
+    # # Add a subtle border or glow to the text
+    # border_color = pygame.Color(0, 100, 0)
+    # pygame.draw.rect(screen, border_color, winner_rect.inflate(20, 20), 3)
+    # pygame.draw.rect(screen, border_color, score_rect.inflate(20, 20), 3)
+
+    # Update the display
     pygame.display.flip()
 
-    # wait for user input to return
+    # Retro blinking effect
+    blink = True
+    last_time = time.time()
+
+    # Wait for user input to return
     while True:
+        # Blinking effect
+        if time.time() - last_time > 0.5:
+            last_time = time.time()
+            blink = not blink
+
+        if blink:
+            screen.blit(winner_surface, winner_rect)
+            screen.blit(score_surface, score_rect)
+        else:
+            screen.fill(bg_color, winner_rect)
+            screen.fill(bg_color, score_rect)
+
+        pygame.display.flip()
+
+        # Process events
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
-                    and event.key == pygame.K_ESCAPE):
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.display.quit()
                 return
-        
+
 # def display_winner(score, team_name):
-#         # initialise pygame  display module
-#         pygame.display.init()
+#     # initialize ygame display and font modules
+#     pygame.display.init()
+#     pygame.font.init()
 
-#         # initialise game window (add height of info bar)
-#         self.game_window = pygame.display.set_mode((200, 100), pygame.NOFRAME)
+#     # calculate desired window size
+#     screen_width, screen_heigth = get_screen_resolution()
+#     window_size = (screen_width//3, screen_heigth//3)
+
+#     # create a window
+#     screen = pygame.display.set_mode(window_size, pygame.NOFRAME)
+
+#     # set font and colors
+#     font = pygame.font.SysFont('arial', 40, bold=True)
+#     text_color = green
+#     bg_color = black
+
+#     # create the winner text
+#     winner_text = f"Vincitore: {team_name} - Punti: {score}"
+#     winner_surface = font.render(winner_text, True, text_color)
+
+#     # get the size of the text and screen
+#     text_rect = winner_surface.get_rect(center=(window_size[0]//2, window_size[1]//2))
+
+#     # fill background
+#     screen.fill(bg_color)
+
+#     # blit the text onto the screen, centered
+#     screen.blit(winner_surface, text_rect)
+
+#     # update the display
+#     pygame.display.flip()
+
+#     # wait for user input to return
+#     while True:
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
+#                     and event.key == pygame.K_ESCAPE):
+#                 pygame.display.quit()
+#                 return
         
-#         # create main font object 
-#         self.main_font = pygame.font.SysFont('arial', 22)
-
-#         # wait for user input to exit
-#         while True:
-#             for event in pygame.event.get():
-#                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
-#                         and event.key == pygame.K_ESCAPE):
-#                     pygame.display.quit()
-#                     return
-            
-

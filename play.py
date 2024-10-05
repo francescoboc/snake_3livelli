@@ -10,7 +10,7 @@ seed = None
 seed_rng(seed)
 
 # snake parameters
-cell_size = 30
+cell_size = 20
 box_size = 30
 snake_speed = 10
 

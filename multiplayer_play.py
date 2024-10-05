@@ -26,10 +26,12 @@ def oneplayer_nostate():
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
 
     # if policy is None the game is launched in interactive mode
-    policies, team_names = [None], [None] 
+    policy = None
 
-    # run the games in parallel
-    run_games_in_parallel(policies, team_names, shared_vars)
+    # run game
+    n_teams, team_name = 1, 'super pazzi'
+    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
+    run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None)
 
 # demo for 1 player to play the game with state info
 def oneplayer_showstate():
@@ -57,10 +59,12 @@ def oneplayer_showstate():
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
 
     # if policy is None the game is launched in interactive mode
-    policies, team_names = [None], [None] 
+    policy = None
 
-    # run the games in parallel
-    run_games_in_parallel(policies, team_names, shared_vars)
+    # run game
+    n_teams, team_name = 1, None
+    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
+    run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None)
 
 # challenge all the policies (in .txt format) inside a folder
 def challenge(path_to_folder):
@@ -99,8 +103,6 @@ def challenge(path_to_folder):
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
-    display_winner(winner_score, winner_name)
-
 # challenge all the policies (in .txt format) inside a folder
 def statistical_challenge(path_to_folder):
     # snake parameters
@@ -126,23 +128,29 @@ def statistical_challenge(path_to_folder):
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
 
+    # number of test games
+    n_games = 1000
+
     policies, team_names = [], []
     for filename in sorted(os.listdir(path_to_folder)):
         policies.append(load_user_policy(filename, path_to_folder))
         team_names.append(filename.replace('.txt',''))
 
     # run the games in parallel
-    scores_dict = test_policies_in_parallel(policies, team_names, shared_vars)
+    scores_dict = test_policies_in_parallel(policies, team_names, shared_vars, n_games)
 
     # get team ranking
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
-    winner_score, winner_name = ranking[0][0], ranking[0][1]
+    # winner_score, winner_name = ranking[0][0], ranking[0][1]
 
     # TODO display histogram
     save_path = f'{path_to_folder}/ranking.txt'
     with open(save_path, 'w') as file:
         for score, team_name in ranking:
             file.write(f"{score:.3f}\t{team_name}\n")
+
+    # TODO evita il file ranking.txt dalle policy!
+    # oppure, meglio: passa come path solo il main math, e poi aggiungi la cartella "strategie", in questo modo ho accesso alla cartella precedente
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

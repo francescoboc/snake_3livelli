@@ -5,6 +5,9 @@ import platform
 if platform.system() == 'Darwin': ON_MAC = True
 else: ON_MAC = False
 
+# load retro font from a .ttf file 
+FONT_PATH = 'fonts/ARCADECLASSIC.TTF'  
+
 class Snake:
     def __init__(self, 
             action_mode=3, 
@@ -18,8 +21,8 @@ class Snake:
             show_compass=True,
             sound_effects=False,
             show_state_info=False,
-            window_position=None,
             team_name=None,
+            window_position=None,
             verbose=True,
             food_rew=1.0, 
             lose_rew=-10.0, 
@@ -486,10 +489,10 @@ class Snake:
         self.fps = pygame.time.Clock()
 
         # create main font object 
-        self.main_font = pygame.font.SysFont('arial', 22)
+        self.main_font = pygame.font.Font(FONT_PATH, self.box_height//20)
 
         # create fotn used in the game over screen
-        self.game_over_font = pygame.font.SysFont('arial', 50, bold=True)
+        self.game_over_font = pygame.font.Font(FONT_PATH, self.box_height//10)
 
         # radii to draw the rounded edges 
         self.food_radius = self.cell_size // 3
@@ -516,7 +519,7 @@ class Snake:
 
         # values to position text on screen
         self.vert_shift = self.main_font.get_height() + 5
-        self.hor_shift = 5
+        self.hor_shift = 10
 
         # initialize audio mixer
         pygame.mixer.init()
@@ -545,7 +548,7 @@ class Snake:
             return (self.body[0][0] + self.eye_offset, self.body[0][1] + self.eye_offset),\
                 (self.body[0][0] + self.eye_offset, self.body[0][1] + self.cell_size - self.eye_offset)
 
-    def game_over(self):
+    def game_over(self, wait_for_user=True):
         # play sound
         if self.sound_effects:
             self.sound_gameover.play()
@@ -564,10 +567,7 @@ class Snake:
             
         # create a text surface on which text will be drawn
         self.game_over_surface = self.game_over_font.render('GAME OVER!', True, red)
-        if self.score == 1:
-            self.game_over_surface1 = self.game_over_font.render(f'Hai fatto {self.score} punto', True, red)
-        else:
-            self.game_over_surface1 = self.game_over_font.render(f'Hai fatto {self.score} punti', True, red)
+        self.game_over_surface1 = self.game_over_font.render(f'SCORE {self.score}', True, red)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
@@ -585,11 +585,12 @@ class Snake:
         pygame.display.flip()
 
         # wait for user input to return
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
-                        and event.key == pygame.K_ESCAPE):
-                    return
+        if wait_for_user:
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
+                            and event.key == pygame.K_ESCAPE):
+                        return
             
     # interpolate between two colors
     def interpolate_color(self, factor):
@@ -601,29 +602,21 @@ class Snake:
     # display score onscreen
     def display_score(self, color):
         # create the display surface object 
-        self.score_surface = self.main_font.render(f'Punti: {self.score}', True, color)
+        self.score_surface = self.main_font.render(f'{self.score}', True, color)
+        # Set transparency 
+        self.score_surface.set_alpha(int(0.75 * 255))
 
         # display text
         self.game_window.blit(self.score_surface, (self.hor_shift, 0))
 
     # display team name onscreen
-    def display_team_name(self, text_color, background_color):
+    def display_team_name(self, text_color):
         # create the display surface object 
         self.team_name_surface = self.main_font.render(self.team_name, True, text_color)
+        self.team_name_surface.set_alpha(int(0.75 * 255))  
 
         # calculate the position to center the text
         text_rect = self.team_name_surface.get_rect(center=(self.box_length // 2, self.team_name_surface.get_height() // 2))
-
-        # Create a new surface for the rounded rectangle with transparency
-        background_surface = pygame.Surface((text_rect.width + 10, text_rect.height + 5), pygame.SRCALPHA)
-        background_surface.set_alpha(int(0.7 * 255))  # Set transparency 
-
-        # Draw a rounded rectangle on the background surface
-        pygame.draw.rect(background_surface, background_color, background_surface.get_rect(), 
-                border_bottom_left_radius = self.snake_radius, border_bottom_right_radius = self.snake_radius)
-
-        # Blit the rounded rectangle to the game window at the calculated position
-        self.game_window.blit(background_surface, (text_rect.x - 5, text_rect.y - 2.5))
 
         # display the black text on top
         self.game_window.blit(self.team_name_surface, text_rect.topleft)
@@ -702,7 +695,7 @@ class Snake:
 
         # display team name
         if self.team_name != None:
-            self.display_team_name(black, white)
+            self.display_team_name(white)
 
         # draw window border (if PBC is not activated)
         # if not self.periodic:
