@@ -34,20 +34,46 @@ prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 init_direction = 'RIGHT' 
 init_size = 4
 
+# # read keys pressed by the user
+# def read_keys():
+#     for event in pygame.event.get():
+#         if event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_UP:
+#                 return 'UP'
+#             if event.key == pygame.K_DOWN:
+#                 return 'DOWN'
+#             if event.key == pygame.K_LEFT:
+#                 return 'LEFT'
+#             if event.key == pygame.K_RIGHT:
+#                 return 'RIGHT'
+#     return 'NO_TURN'
+
 # read keys pressed by the user
 def read_keys():
+    escape_pressed = False
+    action = 'NO_TURN'
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                return 'UP'
+                action = 'UP'
             if event.key == pygame.K_DOWN:
-                return 'DOWN'
+                action = 'DOWN'
             if event.key == pygame.K_LEFT:
-                return 'LEFT'
+                action = 'LEFT'
             if event.key == pygame.K_RIGHT:
-                return 'RIGHT'
-    return 'NO_TURN'
+                action = 'RIGHT'
+            if  event.key == pygame.K_ESCAPE:
+                escape_pressed = True
+    return action, escape_pressed
 
+# simpler version that only checks for escape keypress
+def read_esc():
+    escape_pressed = False
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if  event.key == pygame.K_ESCAPE:
+                escape_pressed = True
+    return escape_pressed
 
 # initialise the RNG with a given seed or a random one
 def seed_rng(seed=None, verbose=True):

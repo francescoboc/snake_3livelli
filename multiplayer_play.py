@@ -70,7 +70,7 @@ def oneplayer_showstate():
 def challenge(path_to_folder):
     # snake parameters
     box_size = 30
-    snake_speed = 100
+    snake_speed = 10
 
     # game parameters
     periodic = True

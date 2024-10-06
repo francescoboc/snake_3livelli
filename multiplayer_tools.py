@@ -1,6 +1,7 @@
 from tools import *
 from snake import *
 import multiprocessing
+import time
 
 # test a single policy
 def test_policy(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
@@ -93,9 +94,15 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
     state = snake.reset()
 
     # game loop
-    while True:
-        if policy is None: action = read_keys()
-        else: action = policy[state]
+    escape_pressed = False
+    while not escape_pressed:
+        if policy is None:
+            # check if an action key has been pressed
+            action, escape_pressed = read_keys()
+        else:
+            # check if ESC has been pressed
+            escape_pressed = read_esc()
+            action = policy[state]
         next_state, reward, terminated, truncated = snake.step(action)
         if terminated or truncated:
             # go in game_over state but without waiting for the user to press ESC
@@ -254,8 +261,6 @@ def calculate_size_and_positions(n_teams, box_size):
 
     return cell_size, window_positions
 
-
-import time
 def display_winner(score, team_name):
     # Initialize pygame display and font modules
     pygame.display.init()
@@ -269,31 +274,59 @@ def display_winner(score, team_name):
     screen = pygame.display.set_mode(window_size, pygame.NOFRAME)
 
     # Set retro style font, colors, and background
-    font = pygame.font.Font(pygame.font.match_font('PressStart2P', bold=True), 30)  # Retro pixelated font
-    text_color = white
+    font = pygame.font.Font(FONT_PATH, window_size[1]//5)
+    text_color = yellow
     bg_color = black
+    border_color = yellow
 
     # Create the winner and score text
-    winner_text = f"AND THE WINNER IS {team_name}"
-    score_text = f"SCORE {score}"
+    winner_text = f"{team_name}"
+    score_text = f"PUNTEGGIO {score}"
     winner_surface = font.render(winner_text, True, text_color)
     score_surface = font.render(score_text, True, text_color)
+
+    # Load and display the image at the top of the screen
+    image = pygame.image.load('img/crown.png')
+
+    # Get the original image size
+    image_rect = image.get_rect()
+    image_width, image_height = image_rect.size
+
+    # Calculate the scale factor to fit the image while preserving aspect ratio
+    max_width = window_size[0] // 2
+    max_height = window_size[1] // 3
+    scale_factor = min(max_width / image_width, max_height / image_height)
+
+    # Scale the image while maintaining aspect ratio
+    new_width = int(image_width * scale_factor)
+    new_height = int(image_height * scale_factor)
+    image = pygame.transform.scale(image, (new_width, new_height))
 
     # Get the size of the text and screen
     winner_rect = winner_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 - 40))
     score_rect = score_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 40))
 
+    # Calculate total content height (image + winner text + score text)
+    total_height = new_height + winner_rect.height + score_rect.height + 40  # Add spacing between elements
+
+    # Calculate the top offset to center the content vertically
+    top_offset = (window_size[1] - total_height) // 2
+
+    # Position elements relative to the top_offset
+    image_rect = image.get_rect(center=(window_size[0] // 2, top_offset + new_height // 2))
+    winner_rect = winner_surface.get_rect(center=(window_size[0] // 2, image_rect.bottom + winner_rect.height // 2 + 20))
+    score_rect = score_surface.get_rect(center=(window_size[0] // 2, winner_rect.bottom + score_rect.height // 2 + 20))
+
     # Fill background
     screen.fill(bg_color)
 
-    # Blit the text onto the screen, centered
+    # Blit the image and text onto the screen
+    screen.blit(image, image_rect)
     screen.blit(winner_surface, winner_rect)
     screen.blit(score_surface, score_rect)
 
-    # # Add a subtle border or glow to the text
-    # border_color = pygame.Color(0, 100, 0)
-    # pygame.draw.rect(screen, border_color, winner_rect.inflate(20, 20), 3)
-    # pygame.draw.rect(screen, border_color, score_rect.inflate(20, 20), 3)
+    # Draw the border (blink effect)
+    pygame.draw.rect(screen, border_color, screen.get_rect(), 1)
 
     # Update the display
     pygame.display.flip()
@@ -305,63 +338,24 @@ def display_winner(score, team_name):
     # Wait for user input to return
     while True:
         # Blinking effect
-        if time.time() - last_time > 0.5:
+        if time.time() - last_time > 0.25:
             last_time = time.time()
             blink = not blink
 
         if blink:
+            # screen.blit(image, image_rect)
             screen.blit(winner_surface, winner_rect)
             screen.blit(score_surface, score_rect)
         else:
+            # screen.fill(bg_color, image_rect)
             screen.fill(bg_color, winner_rect)
             screen.fill(bg_color, score_rect)
 
         pygame.display.flip()
 
-        # Process events
+        # Wait for exit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.display.quit()
                 return
 
-# def display_winner(score, team_name):
-#     # initialize ygame display and font modules
-#     pygame.display.init()
-#     pygame.font.init()
-
-#     # calculate desired window size
-#     screen_width, screen_heigth = get_screen_resolution()
-#     window_size = (screen_width//3, screen_heigth//3)
-
-#     # create a window
-#     screen = pygame.display.set_mode(window_size, pygame.NOFRAME)
-
-#     # set font and colors
-#     font = pygame.font.SysFont('arial', 40, bold=True)
-#     text_color = green
-#     bg_color = black
-
-#     # create the winner text
-#     winner_text = f"Vincitore: {team_name} - Punti: {score}"
-#     winner_surface = font.render(winner_text, True, text_color)
-
-#     # get the size of the text and screen
-#     text_rect = winner_surface.get_rect(center=(window_size[0]//2, window_size[1]//2))
-
-#     # fill background
-#     screen.fill(bg_color)
-
-#     # blit the text onto the screen, centered
-#     screen.blit(winner_surface, text_rect)
-
-#     # update the display
-#     pygame.display.flip()
-
-#     # wait for user input to return
-#     while True:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
-#                     and event.key == pygame.K_ESCAPE):
-#                 pygame.display.quit()
-#                 return
-        

@@ -395,9 +395,6 @@ class Snake:
         terminated = self.is_terminal()
         truncated = self.is_truncated()
 
-        if self.state_mode=='spirality':
-            self.spirality = self.check_spirality(action)
-
         # if food was eaten, spawn a new one
         if self.food_eaten:
             self.spawn_food()
@@ -447,11 +444,14 @@ class Snake:
         state = self.reset()
 
         # game loop
-        while True:
+        escape_pressed = False
+        while not escape_pressed:
             if policy is None:
-                # check if a key has been pressed
-                action = read_keys()
+                # check if an action key has been pressed
+                action, escape_pressed = read_keys()
             else:
+                # check if ESC has been pressed
+                escape_pressed = read_esc()
                 action = policy[state]
 
             # update snake position
@@ -567,7 +567,7 @@ class Snake:
             
         # create a text surface on which text will be drawn
         self.game_over_surface = self.game_over_font.render('GAME OVER!', True, red)
-        self.game_over_surface1 = self.game_over_font.render(f'SCORE {self.score}', True, red)
+        self.game_over_surface1 = self.game_over_font.render(f'PUNTEGGIO {self.score}', True, red)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
