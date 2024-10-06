@@ -2,61 +2,12 @@ from multiplayer_tools import *
 
 # demo for 1 player to play the game with no state info
 def oneplayer_nostate():
-    # snake parameters
-    box_size = 30
-    snake_speed = 10
-
-    # game parameters
-    periodic = True
-    action_mode = 3
-    rand_init_body_length = False
-    rand_init_direction = False
-
-    # state mode
-    state_mode = 'simple'
-    # state_mode = 'proximity'
-
-    # visual and sound effects
-    show_compass = False
-    sound_effects = True
-    show_state_info = False
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
-
-    # if policy is None the game is launched in interactive mode
-    policy = None
-
-    # run game
-    n_teams, team_name = 1, 'super pazzi'
-    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
-    run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None)
-
-# demo for 1 player to play the game with state info
-def oneplayer_showstate():
-    # snake parameters
-    box_size = 30
-    snake_speed = 10
-
-    # game parameters
-    periodic = True
-    action_mode = 3
-    rand_init_body_length = False
-    rand_init_direction = False
-
-    # state mode
-    state_mode = 'simple'
-    # state_mode = 'proximity'
-
-    # visual and sound effects
-    show_compass = True
-    sound_effects = True
-    show_state_info = False
-
-    # put all shared variables into a list for convenience
-    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
     # if policy is None the game is launched in interactive mode
     policy = None
@@ -64,32 +15,42 @@ def oneplayer_showstate():
     # run game
     n_teams, team_name = 1, None
     cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
-    run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None)
+    run_snake_game(policy, team_name, window_position, cell_size, shared_vars)
+
+# demo for 1 player to play the game with state info
+def oneplayer_showstate():
+    # import default variables
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+
+    # don't show state
+    show_compass = True
+
+    # put all shared variables into a list for convenience
+    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+
+    # if policy is None the game is launched in interactive mode
+    policy = None
+
+    # run game
+    n_teams, team_name = 1, None
+    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
+    run_snake_game(policy, team_name, window_position, cell_size, shared_vars)
 
 # challenge all the policies (in .txt format) inside a folder
 def challenge(turn_folder):
-    # snake parameters
-    box_size = 30
-    snake_speed = 10
-
-    # game parameters
-    periodic = True
-    action_mode = 3
-    rand_init_body_length = False
-    rand_init_direction = False
-
-    # state mode
-    state_mode = 'simple'
-    # state_mode = 'proximity'
+    # import default variables
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
     # visual and sound effects
     show_compass = True
     sound_effects = False
-    show_state_info = False
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
     policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
@@ -107,28 +68,16 @@ def challenge(turn_folder):
 
 # challenge all the policies (in .txt format) inside a folder
 def statistical_challenge(turn_folder):
-    # snake parameters
-    box_size = 30
-    snake_speed = 10
-
-    # game parameters
-    periodic = True
-    action_mode = 3
-    rand_init_body_length = False
-    rand_init_direction = False
-
-    # state mode
-    state_mode = 'simple'
-    # state_mode = 'proximity'
+    # import default variables
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
     # visual and sound effects
-    show_compass = True
     sound_effects = False
-    show_state_info = False
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
     # number of test games
     n_games = 1000
@@ -187,9 +136,7 @@ if __name__ == "__main__":
         else:
             print('Game mode not recognized!')
 
-        # TODO add a countdown in snake!
-
         # sfida tra squadre <- path cartella CAMBIA COLORE!
-        # nome suadra + id_colore <- valuta policies <- path cartella (ion)
+        # nome suadra + id_colore <- valuta policies <- path cartella 
         # sfida ai <- path a policy vincente + id_colore
         # sfida umano vs ai (sempre grigia)

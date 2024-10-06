@@ -1,10 +1,14 @@
-import random, sys, signal, os
+import random, sys, signal, os, time
 from tqdm import tqdm
 import numpy as np
 
 # hide pygame welcome message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
+
+# load retro font 
+# FONT_PATH = 'fonts/ARCADECLASSIC.TTF'  
+FONT_PATH = 'fonts/pixel_emulator.otf'  
 
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c

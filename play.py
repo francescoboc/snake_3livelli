@@ -29,9 +29,15 @@ show_compass = True
 sound_effects = True
 show_state_info = False
 
+team_name = None
+window_position = None
+verbose = True
+countdown_seconds = 3
+
 # create snake game object
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
-        rand_init_body_length, rand_init_direction, show_compass, sound_effects, show_state_info)
+        rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
+        show_state_info, team_name, window_position, verbose, countdown_seconds)
 
 pi_star = None
 

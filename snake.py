@@ -5,9 +5,6 @@ import platform
 if platform.system() == 'Darwin': ON_MAC = True
 else: ON_MAC = False
 
-# load retro font from a .ttf file 
-FONT_PATH = 'fonts/ARCADECLASSIC.TTF'  
-
 class Snake:
     def __init__(self, 
             action_mode=3, 
@@ -24,6 +21,7 @@ class Snake:
             team_name=None,
             window_position=None,
             verbose=True,
+            countdown_seconds=3,
             food_rew=1.0, 
             lose_rew=-10.0, 
             step_rew=0.0,
@@ -65,8 +63,10 @@ class Snake:
         self.sound_effects = sound_effects
         self.show_state_info = show_state_info
 
-        self.window_position = window_position
+        # other variables (mainly for multiplayer mode)
         self.team_name = team_name
+        self.window_position = window_position
+        self.countdown_seconds = countdown_seconds
 
         # load compass images
         if self.show_compass:
@@ -439,6 +439,7 @@ class Snake:
     def play(self, policy=None, render=True):
         if render:
             self.init_render()
+            if self.countdown_seconds > 0: self.countdown()
 
         # reset the game
         state = self.reset()
@@ -471,8 +472,33 @@ class Snake:
 
             # shift state
             state = next_state
+        return self.score, truncated
 
     ############################## RENDERING METHODS #######################
+
+    # display a countdown before starting the game.
+    def countdown(self):
+        for i in range(self.countdown_seconds, 0, -1):
+            # clear screen
+            self.game_window.fill((black))
+
+            # render countdown text
+            countdown_text = self.countdown_font.render(str(i), True, white)
+            text_rect = countdown_text.get_rect(center=(self.box_length//2, self.box_height//2))
+            self.game_window.blit(countdown_text, text_rect)
+
+            # add border
+            pygame.draw.rect(self.game_window, white, self.game_window.get_rect(), 1)
+
+            # update the display
+            pygame.display.flip()
+
+            # wait for 1 second
+            time.sleep(1)
+
+        # # after countdown, clear screen
+        # self.game_window.fill(black)
+        # pygame.display.flip()
 
     # initialize rendering environment (pygame)
     def init_render(self):
@@ -490,11 +516,10 @@ class Snake:
         # FPS (frames per second) controller
         self.fps = pygame.time.Clock()
 
-        # create main font object 
+        # fonts objects
         self.main_font = pygame.font.Font(FONT_PATH, self.box_height//20)
-
-        # create fotn used in the game over screen
         self.game_over_font = pygame.font.Font(FONT_PATH, self.box_height//10)
+        self.countdown_font = pygame.font.Font(FONT_PATH, self.box_height//3)
 
         # radii to draw the rounded edges 
         self.food_radius = self.cell_size // 3
@@ -569,7 +594,8 @@ class Snake:
             
         # create a text surface on which text will be drawn
         self.game_over_surface = self.game_over_font.render('GAME OVER!', True, red)
-        self.game_over_surface1 = self.game_over_font.render(f'PUNTEGGIO {self.score}', True, red)
+        if self.score == 1: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTO', True, red)
+        else: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTI', True, red)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
@@ -657,13 +683,6 @@ class Snake:
 
     # render the current frame
     def render_frame(self):
-
-        # wait for user input to return
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
-                    and event.key == pygame.K_ESCAPE):
-                return
-        
         # clear the screen (fill with black)
         self.game_window.fill(black)
 
