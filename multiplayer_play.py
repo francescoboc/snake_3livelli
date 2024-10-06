@@ -67,7 +67,7 @@ def oneplayer_showstate():
     run_snake_game(policy, team_name, window_position, cell_size, shared_vars, seed=None)
 
 # challenge all the policies (in .txt format) inside a folder
-def challenge(path_to_folder):
+def challenge(turn_folder):
     # snake parameters
     box_size = 30
     snake_speed = 10
@@ -92,8 +92,10 @@ def challenge(path_to_folder):
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info]
 
     policies, team_names = [], []
-    for filename in sorted(os.listdir(path_to_folder)):
-        policies.append(load_user_policy(filename, path_to_folder))
+    # all the policies are inside a subfolder 'strategie'
+    policies_folder = f'{turn_folder}/strategie'
+    for filename in sorted(os.listdir(policies_folder)):
+        policies.append(load_user_policy(filename, policies_folder))
         team_names.append(filename.replace('.txt',''))
 
     # run the games in parallel
@@ -104,7 +106,7 @@ def challenge(path_to_folder):
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
 # challenge all the policies (in .txt format) inside a folder
-def statistical_challenge(path_to_folder):
+def statistical_challenge(turn_folder):
     # snake parameters
     box_size = 30
     snake_speed = 10
@@ -132,8 +134,10 @@ def statistical_challenge(path_to_folder):
     n_games = 1000
 
     policies, team_names = [], []
-    for filename in sorted(os.listdir(path_to_folder)):
-        policies.append(load_user_policy(filename, path_to_folder))
+    # all the policies are inside a subfolder 'strategie'
+    policies_folder = f'{turn_folder}/strategie'
+    for filename in sorted(os.listdir(policies_folder)):
+        policies.append(load_user_policy(filename, policies_folder))
         team_names.append(filename.replace('.txt',''))
 
     # run the games in parallel
@@ -141,16 +145,14 @@ def statistical_challenge(path_to_folder):
 
     # get team ranking
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
-    # winner_score, winner_name = ranking[0][0], ranking[0][1]
 
-    # TODO display histogram
-    save_path = f'{path_to_folder}/ranking.txt'
+    # save ranking dictionary to file in turn folder
+    save_path = f'{turn_folder}/ranking.txt'
     with open(save_path, 'w') as file:
         for score, team_name in ranking:
             file.write(f"{score:.3f}\t{team_name}\n")
 
-    # TODO evita il file ranking.txt dalle policy!
-    # oppure, meglio: passa come path solo il main math, e poi aggiungi la cartella "strategie", in questo modo ho accesso alla cartella precedente
+    return ranking
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -166,14 +168,20 @@ if __name__ == "__main__":
         # 'challenge' mode requires another argument: path to policies folder
         elif game_mode == 'challenge':
             if len(sys.argv) == 3: 
-                path_to_folder = sys.argv[2]
-                challenge(path_to_folder)
+                turn_folder = sys.argv[2]
+                challenge(turn_folder)
             else: 
                 print('Please specify path to policies folder')
         elif game_mode == 'statistical_challenge':
             if len(sys.argv) == 3: 
-                path_to_folder = sys.argv[2]
-                statistical_challenge(path_to_folder)
+                turn_folder = sys.argv[2]
+                ranking = statistical_challenge(turn_folder)
+                import matplotlib.pyplot as plt
+                scores = [rank[0] for rank in ranking]
+                teams = [rank[1] for rank in ranking]
+                plt.bar(teams, scores)
+                plt.title('Punteggio medio su 1000 partite')
+                plt.show()
             else: 
                 print('Please specify path to policies folder')
         else:

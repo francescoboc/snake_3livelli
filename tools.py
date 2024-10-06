@@ -34,20 +34,6 @@ prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 init_direction = 'RIGHT' 
 init_size = 4
 
-# # read keys pressed by the user
-# def read_keys():
-#     for event in pygame.event.get():
-#         if event.type == pygame.KEYDOWN:
-#             if event.key == pygame.K_UP:
-#                 return 'UP'
-#             if event.key == pygame.K_DOWN:
-#                 return 'DOWN'
-#             if event.key == pygame.K_LEFT:
-#                 return 'LEFT'
-#             if event.key == pygame.K_RIGHT:
-#                 return 'RIGHT'
-#     return 'NO_TURN'
-
 # read keys pressed by the user
 def read_keys():
     escape_pressed = False

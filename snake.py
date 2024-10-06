@@ -448,10 +448,12 @@ class Snake:
         while not escape_pressed:
             if policy is None:
                 # check if an action key has been pressed
-                action, escape_pressed = read_keys()
+                if render: 
+                    action, escape_pressed = read_keys()
             else:
                 # check if ESC has been pressed
-                escape_pressed = read_esc()
+                if render:
+                    escape_pressed = read_esc()
                 action = policy[state]
 
             # update snake position
