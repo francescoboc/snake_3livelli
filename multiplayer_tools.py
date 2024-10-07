@@ -188,7 +188,7 @@ def run_games_in_parallel(policies, team_names, shared_vars):
 
     return scores_dict
 
-# get screen resolution
+# function to get screen resolution
 def get_screen_resolution(verbose=False):
     pygame.display.init()
     display_sizes = pygame.display.get_desktop_sizes()
@@ -342,9 +342,8 @@ def display_winner(score, team_name):
     blink = True
     last_time = time.time()
 
-    # Wait for user input to return
+    # Blinking effect
     while True:
-        # Blinking effect
         if time.time() - last_time > 0.25:
             last_time = time.time()
             blink = not blink

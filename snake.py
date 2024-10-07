@@ -9,7 +9,7 @@ class Snake:
     def __init__(self, 
             action_mode=3, 
             state_mode='simple', 
-            cell_size=30, 
+            cell_size=20, 
             box_size=30, 
             snake_speed=15, 
             periodic=True, 
@@ -116,6 +116,7 @@ class Snake:
         if verbose:
             print(f'Action mode = {action_mode}')
             print(f'State mode = {state_mode}')
+            print(f'Box size = {box_size}x{box_size}')
             print(f'Periodic = {periodic}')
             print(f'Random initial body length = {rand_init_body_length}')
             print(f'Random initial direction = {rand_init_direction}')
@@ -284,7 +285,7 @@ class Snake:
     def out_of_bounds(self, pos):
         return pos[0] < 0 or pos[0] > self.box_length-self.cell_size or pos[1] < 0 or pos[1] > self.box_height-self.cell_size
                 
-    ################################## STATE DEFS ##############################
+    ################################## STATE DEFS ################################## 
 
     def get_state_simple(self):
         self.compass = self.check_compass(self.food_position)
@@ -295,7 +296,7 @@ class Snake:
         self.proximity = self.check_proximity()
         return (self.direction, self.compass, self.proximity)
 
-    ################################## LOCOMOTION ##############################
+    ################################## LOCOMOTION ##################################
 
     # spawn food at random locations avoiding overlap with snake body
     def spawn_food(self):
@@ -333,7 +334,7 @@ class Snake:
         if self.position[0] == self.food_position[0] and self.position[1] == self.food_position[1]:
             # increment score
             self.score += 1
-            # change flag to keep track of food spawning
+            # set the food_eaten flag to true
             self.food_eaten = True
         else:
             # otherwise, delete the last body element
@@ -387,20 +388,15 @@ class Snake:
 
     # advance one timestep
     def step(self, action):
-        # set direction based on action and advance snake in time
+        # set direction based on action
         self.direction = self.get_direction_from_actions(action)
+
+        # advance snake (this method also sets the food_eaten flag)
         self.advance()
 
         # check if terminal state or truncation was reached
         terminated = self.is_terminal()
         truncated = self.is_truncated()
-
-        # if food was eaten, spawn a new one
-        if self.food_eaten:
-            self.spawn_food()
-            # play sound
-            if self.sound_effects:
-                self.sound_chomp.play()
 
         # assign rewards
         if terminated:
@@ -412,6 +408,13 @@ class Snake:
         else:
             reward = self.step_rew
         
+        # if food was eaten, reset flag and spawn a new one
+        if self.food_eaten:
+            self.spawn_food()
+            # play sound
+            if self.sound_effects:
+                self.sound_chomp.play()
+
         # get reading of new state
         if not terminated:
             next_state = self.get_state()
@@ -435,7 +438,7 @@ class Snake:
         self.old_score = self.score
         return truncated
 
-    # play with a given policy or against a user
+    # play with a given policy or interactively
     def play(self, policy=None, render=True):
         if render:
             self.init_render()
@@ -463,9 +466,8 @@ class Snake:
             if terminated or truncated:
                 if render:
                     self.game_over()
-                    return self.score, truncated
-                else:
-                    return self.score, truncated
+                pygame.quit()
+                return self.score, truncated
 
             if render:
                 self.render_frame()
@@ -474,9 +476,9 @@ class Snake:
             state = next_state
         return self.score, truncated
 
-    ############################## RENDERING METHODS #######################
+    ############################## RENDERING METHODS ##############################
 
-    # display a countdown before starting the game.
+    # display a countdown before starting the game
     def countdown(self):
         for i in range(self.countdown_seconds, 0, -1):
             # clear screen
@@ -493,12 +495,11 @@ class Snake:
             # update the display
             pygame.display.flip()
 
+            # fix for macOS
+            if ON_MAC: pygame.event.pump()
+
             # wait for 1 second
             time.sleep(1)
-
-        # # after countdown, clear screen
-        # self.game_window.fill(black)
-        # pygame.display.flip()
 
     # initialize rendering environment (pygame)
     def init_render(self):
@@ -728,5 +729,5 @@ class Snake:
         # refresh game screen
         pygame.display.flip()
 
-        # fix for macOS screen refresh on multiprocessing
+        # fix for macOS
         if ON_MAC: pygame.event.pump()

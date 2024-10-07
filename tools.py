@@ -80,21 +80,20 @@ def load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose
     else: policy_folder = f'policies/non_periodic'
     policy_name = f'pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}'
     try: 
-        pi_star = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
+        policy = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
         if verbose:
             print(f'Policy {policy_name} loaded!')
     except:
         raise Exception(f'Policy {policy_name} not found!')
-    return pi_star
+    return policy
 
 # save a policy
-def save_policy(periodic, box_size, action_mode, state_mode, n_episodes):
+def save_policy(policy, periodic, box_size, action_mode, state_mode, n_episodes):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
     policy_name = f'pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}'
-    np.save(f'{policy_folder}/{policy_name}.npy', pi_star)
+    np.save(f'{policy_folder}/{policy_name}.npy', policy)
     print(f'Policy {policy_name} saved!')
-    return pi_star
 
 # load and convert a text policy to a dictionary
 def load_user_policy(filename, folder, verbose=False):

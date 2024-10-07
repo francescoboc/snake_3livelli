@@ -1,6 +1,14 @@
 from multiplayer_tools import *
 
-# demo for 1 player to play the game with no state info
+# GAME MODES:
+# demo for one player with no state info OK
+# demo for one player with state info OK
+# challenge all the policies (demo one game) TODO change snake color
+# challenge all the policies with statistics TODO return id_color of winner
+# challenge best_policy vs ai TODO receives path to best policy and id_color
+# TODO challenge human vs ai 
+
+# demo for one player with no state info
 def oneplayer_nostate():
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
@@ -17,7 +25,7 @@ def oneplayer_nostate():
     cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
     run_snake_game(policy, team_name, window_position, cell_size, shared_vars)
 
-# demo for 1 player to play the game with state info
+# demo for one player with state info
 def oneplayer_showstate():
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
@@ -38,7 +46,7 @@ def oneplayer_showstate():
     cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
     run_snake_game(policy, team_name, window_position, cell_size, shared_vars)
 
-# challenge all the policies (in .txt format) inside a folder
+# challenge all the policies (in .txt format) inside a folder on one game (with rendering)
 def challenge(turn_folder):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
@@ -66,7 +74,7 @@ def challenge(turn_folder):
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
-# challenge all the policies (in .txt format) inside a folder
+# challenge all the policies (in .txt format) with statistics (no rendering)
 def statistical_challenge(turn_folder):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
@@ -135,8 +143,3 @@ if __name__ == "__main__":
                 print('Please specify path to policies folder')
         else:
             print('Game mode not recognized!')
-
-        # sfida tra squadre <- path cartella CAMBIA COLORE!
-        # nome suadra + id_colore <- valuta policies <- path cartella 
-        # sfida ai <- path a policy vincente + id_colore
-        # sfida umano vs ai (sempre grigia)

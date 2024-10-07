@@ -1,8 +1,3 @@
-# ****************** Boccardo Gagliardi @PiMlB MALGA  ***************
-# LEARNING: input environment and learning parameters --> trained policy
-# 
-# ********************************************************************
-
 from tools import *
 
 class QLearningAgent:
@@ -42,10 +37,8 @@ class QLearningAgent:
         # calculate episodic reduction for linear decay of exploration rate
         reduction = (self.epsilon_i - self.epsilon_f)/self.n_episodes
 
-        iterator = tqdm(range(self.n_episodes), ascii=' █') 
-        for epi in iterator:
-        # for epi in range(self.n_episodes):
-
+        # loop on episodes
+        for epi in tqdm(range(self.n_episodes), ascii=' █'):
             # reset timestep counter
             step = 0
 
