@@ -9,12 +9,9 @@ from snake import *
 seed = None
 seed_rng(seed)
 
-# snake parameters
-cell_size = 20
-box_size = 30
-snake_speed = 10
-
 # game parameters
+box_size = 20
+snake_speed = 100
 periodic = True
 action_mode = 3
 rand_init_body_length = True
@@ -28,6 +25,7 @@ state_mode = 'simple'
 show_compass = True
 sound_effects = True
 show_state_info = False
+cell_size = 20
 
 team_name = None
 window_position = None
@@ -41,8 +39,8 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
 
 pi_star = None
 
-# # load a saved policy
-# n_episodes = int(1e7)
-# pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
+# load a saved policy
+n_episodes = int(1e7)
+pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
 snake.play(pi_star)

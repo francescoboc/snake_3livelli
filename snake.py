@@ -1,10 +1,5 @@
 from tools import *
 
-# check if python is running on macOS
-import platform
-if platform.system() == 'Darwin': ON_MAC = True
-else: ON_MAC = False
-
 class Snake:
     def __init__(self, 
             action_mode=3, 
@@ -495,8 +490,8 @@ class Snake:
             # update the display
             pygame.display.flip()
 
-            # fix for macOS
-            if ON_MAC: pygame.event.pump()
+            # this fixes rendering issues on macOS
+            pygame.event.pump()
 
             # wait for 1 second
             time.sleep(1)
@@ -729,5 +724,5 @@ class Snake:
         # refresh game screen
         pygame.display.flip()
 
-        # fix for macOS
-        if ON_MAC: pygame.event.pump()
+        # this fixes rendering issues on macOS
+        pygame.event.pump()

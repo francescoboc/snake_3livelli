@@ -7,7 +7,6 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
 # load retro font 
-# FONT_PATH = 'fonts/ARCADECLASSIC.TTF'  
 FONT_PATH = 'fonts/pixel_emulator.otf'  
 
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
@@ -118,4 +117,34 @@ def load_user_policy(filename, folder, verbose=False):
 # change position of window
 def set_window_position(x, y):
     os.environ['SDL_VIDEO_WINDOW_POS'] = f"{x},{y}"
+
+def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_length, rand_init_direction, n_games, policy, verbose=True):
+    from snake import Snake
+    # these are not important because we are not rendering the game window
+    cell_size = 30
+    snake_speed = 100
+
+    # create snake game object
+    snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, rand_init_body_length, rand_init_direction, verbose=False)
+
+    seeds, scores = [], []
+    truncated_count = 0
+    for n in tqdm(range(n_games), ascii=' █') :
+        seed = seed_rng(verbose=False)
+        score, truncated = snake.play(policy, render=False)
+        seeds.append(seed)
+        scores.append(score)
+        if truncated:
+            truncated_count += 1
+
+    mean_score = np.mean(scores)
+    trun_ratio = truncated_count/n_games
+    best_score = np.max(scores)
+    best_seed = seeds[np.argmax(scores)]
+
+    if verbose:
+        print(f'Mean score: {mean_score:.3f}, Truncated episodes ratio: {trun_ratio:.2f}')
+        print(f'Best score: {best_score}, Seed: {best_seed}')
+
+    return mean_score, trun_ratio
 
