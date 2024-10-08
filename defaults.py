@@ -1,5 +1,5 @@
 # snake parameters
-box_size = 30
+box_size = 20
 snake_speed = 10
 
 # game parameters

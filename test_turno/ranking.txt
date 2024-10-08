@@ -1,6 +1,6 @@
-27.913	test2
-26.080	test5
-3.850	test1
-0.398	test6
-0.012	test3
+27.806	test2
+26.135	test5
+3.537	test1
+0.437	test6
+0.015	test3
 0.000	test4

@@ -6,33 +6,42 @@ from multiplayer_tools import *
 # challenge all the policies (demo one game) TODO change snake color
 # challenge all the policies with statistics TODO return id_color of winner
 # challenge best_policy vs ai TODO receives path to best policy and id_color
-# TODO challenge human vs ai 
+# challenge human vs ai 
 
-# demo for one player with no state info
-def oneplayer_nostate():
+def human_vs_ai(mode=None, show_state=None):
+    # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+
+    # visual and sound effects
+    show_compass = False
+    sound_effects = True
+
+    # overwrite default values
+    if mode is not None: state_mode = mode
+    if show_state is not None: show_compass = show_state
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
-    # if policy is None the game is launched in interactive mode
-    policy = None
+    # load a saved policy
+    n_episodes = int(1e7)
+    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
-    # run game
-    n_teams, team_name = 1, None
-    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
-    run_snake_game(policy, team_name, window_position, cell_size, shared_vars)
+    policies, team_names = [None, pi_star], ['Umano', 'AI']
 
-# demo for one player with state info
-def oneplayer_showstate():
-    # import default variables
+    # run the games in parallel
+    scores_dict = run_games_in_parallel(policies, team_names, shared_vars)
+
+# demo for one player 
+def one_player(mode=None, show_state=None):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
-    # don't show state
-    show_compass = True
+    # overwrite default values
+    if mode is not None: state_mode = mode
+    if show_state is not None: show_compass = show_state
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
@@ -109,7 +118,12 @@ def statistical_challenge(turn_folder):
         for score, team_name in ranking:
             file.write(f"{score:.3f}\t{team_name}\n")
 
-    return ranking
+    import matplotlib.pyplot as plt
+    scores = [rank[0] for rank in ranking]
+    teams = [rank[1] for rank in ranking]
+    plt.bar(teams, scores)
+    plt.title('Punteggio medio su 1000 partite')
+    plt.show()
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -118,11 +132,22 @@ if __name__ == "__main__":
         game_mode = sys.argv[1]
 
         # behavior for different game modes
-        if game_mode == 'oneplayer_nostate':
-            oneplayer_nostate()
-        elif game_mode == 'oneplayer_showstate':
-            oneplayer_showstate()
-        # 'challenge' mode requires another argument: path to policies folder
+        # 'one_player' mode requires flag to show state or not
+        if game_mode == 'one_player':
+            state_mode = 'simple'
+            if len(sys.argv) == 3: 
+                if sys.argv[2] == 'show':
+                    show_state = True
+                    one_player(state_mode, show_state)
+                elif sys.argv[2] == 'no_show':
+                    show_state = False
+                    one_player(state_mode, show_state)
+                else:
+                    print("Please specify show_state flag ('show' or 'no_show')")
+            # if no show_state flag is passed, run game with default values
+            else:
+                one_player()
+        # 'challenge' mode requires path to policies folder as a second argument
         elif game_mode == 'challenge':
             if len(sys.argv) == 3: 
                 turn_folder = sys.argv[2]
@@ -132,14 +157,24 @@ if __name__ == "__main__":
         elif game_mode == 'statistical_challenge':
             if len(sys.argv) == 3: 
                 turn_folder = sys.argv[2]
-                ranking = statistical_challenge(turn_folder)
-                import matplotlib.pyplot as plt
-                scores = [rank[0] for rank in ranking]
-                teams = [rank[1] for rank in ranking]
-                plt.bar(teams, scores)
-                plt.title('Punteggio medio su 1000 partite')
-                plt.show()
+                statistical_challenge(turn_folder)
             else: 
                 print('Please specify path to policies folder')
+        # 'human_vs_ai' mode requires flag to choose state mode
+        elif game_mode == 'human_vs_ai':
+            show_state = True
+            if len(sys.argv) == 3: 
+                if sys.argv[2] == 'simple':
+                    state_mode = 'simple'
+                    show_state = True
+                    human_vs_ai(state_mode, show_state)
+                elif sys.argv[2] == 'proximity':
+                    state_mode = 'proximity'
+                    human_vs_ai(state_mode, show_state)
+                else:
+                    print("Please specify a state mode ('simple' or 'proximity')")
+            # if no show_state flag is passed, run game with default values
+            else:
+                human_vs_ai()
         else:
             print('Game mode not recognized!')
