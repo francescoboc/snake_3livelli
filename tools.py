@@ -118,7 +118,8 @@ def load_user_policy(filename, folder, verbose=False):
 def set_window_position(x, y):
     os.environ['SDL_VIDEO_WINDOW_POS'] = f"{x},{y}"
 
-def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_length, rand_init_direction, n_games, policy, verbose=True):
+# test a single policy
+def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_length, rand_init_direction, n_games, policy, verbose=True, use_tqdm=True):
     from snake import Snake
     # these are not important because we are not rendering the game window
     cell_size = 30
@@ -129,7 +130,9 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
 
     seeds, scores = [], []
     truncated_count = 0
-    for n in tqdm(range(n_games), ascii=' █') :
+    if use_tqdm: iterator = tqdm(range(n_games), ascii=' █')
+    else: iterator = range(n_games)
+    for n in iterator:
         seed = seed_rng(verbose=False)
         score, truncated = snake.play(policy, render=False)
         seeds.append(seed)
@@ -147,4 +150,3 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
         print(f'Best score: {best_score}, Seed: {best_seed}')
 
     return mean_score, trun_ratio
-

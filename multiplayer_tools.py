@@ -2,15 +2,15 @@ from tools import *
 from snake import *
 import multiprocessing
 
-# test a single policy
-def test_policy(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
+# test a single policy (to be used in multiprocessing loop)
+def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, \
         show_state_info, countdown_seconds = shared_vars 
 
     # this doesn't really matter because we are not rendering the game window
-    cell_size = 1
+    cell_size = 10
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
@@ -48,7 +48,7 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     processes = []
     for i in range(n_teams):
         policy, team_name, = policies[i], team_names[i],
-        p = multiprocessing.Process(target=test_policy, args=(policy, team_name, 
+        p = multiprocessing.Process(target=test_policy_multiprocess, args=(policy, team_name, 
             shared_vars, scores_dict, n_games))
         processes.append(p)
         p.start()
@@ -59,7 +59,7 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
 
     return dict(scores_dict)
 
-# run a single snake game (simple non-parallel version)
+# run a single snake game (simple non-multiprocessing version)
 def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, verbose=False, seed=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\

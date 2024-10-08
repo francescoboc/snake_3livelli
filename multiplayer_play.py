@@ -101,7 +101,8 @@ def challenge(turn_folder):
     policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
-    for filename in sorted(os.listdir(policies_folder)):
+    files_list = sorted(os.listdir(policies_folder))
+    for filename in files_list:
         policies.append(load_user_policy(filename, policies_folder))
         team_names.append(filename.replace('.txt',''))
 
@@ -126,7 +127,7 @@ def statistical_challenge(turn_folder):
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
     # number of test games
-    n_games = 1000
+    n_games = 100
 
     policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
@@ -147,11 +148,100 @@ def statistical_challenge(turn_folder):
         for score, team_name in ranking:
             file.write(f"{score:.3f}\t{team_name}\n")
 
-    import matplotlib.pyplot as plt
+    ########## PLOT BARS TO SHOW AVERAGE SCORES ########## 
+
+    # create scores and teams lists
     scores = [rank[0] for rank in ranking]
     teams = [rank[1] for rank in ranking]
-    plt.bar(teams, scores)
-    plt.title('Punteggio medio su 1000 partite')
+
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Button
+
+    # # disable the toolbar
+    # plt.rcParams['toolbar'] = 'none'
+
+    plot_title = 'Punteggio medio su 1000 partite'
+    pi_star_simple_label = 'AI'
+    pi_star_proximity_label = 'AI avanzata'
+
+    # TODO colors should be different for each policy
+    colors = ['green' for team in teams]
+    pi_star_simple_color = 'red'
+    pi_star_proximity_color = 'purple'
+
+    fig, ax = plt.subplots(figsize=(8,5.5))
+    fig.tight_layout(pad=2)
+    fig.canvas.manager.set_window_title('Sfida')
+    ax.bar(teams, scores, color=colors)
+    ax.set_title(plot_title)
+
+    # rotate x-tick labels
+    ax.set_xticks(range(len(teams)))
+    ax.set_xticklabels(teams, rotation=45, ha='right')
+
+    # adjust layout to make room for the team names
+    plt.subplots_adjust(bottom=0.15)
+
+    # TODO una volta fissate le policy, si puo direttamente scrivere qui la score media
+    # load and test learned policies
+    n_episodes = int(1e7)
+    state_mode = 'simple'
+    policy = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+
+    n_episodes = int(1e7)
+    state_mode = 'proximity'
+    box_size = 30
+    policy = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+
+    # prepare pi_star_bars dictionary with all info for the new score bars
+    pi_star_bars = {
+        pi_star_simple_label: {'score': pi_star_simple_score, 
+            'color': pi_star_simple_color, 'show': False},
+        pi_star_proximity_label: {'score': pi_star_proximity_score, 
+            'color': pi_star_proximity_color, 'show': False}
+    }
+
+    # function to reveal score bars dynamically
+    def reveal_pi_star_bar(label):
+        if pi_star_bars[label]['show'] is False:
+            # append the new bar label, score and color to the existing lists
+            new_score = pi_star_bars[label]['score']
+            new_color = pi_star_bars[label]['color']
+            teams.append(label)
+            scores.append(new_score)
+            colors.append(new_color)
+
+            # clear the existing plot and redraw everything
+            ax.clear()  
+            ax.bar(teams, scores, color=colors)
+            ax.set_title(plot_title)
+
+            # rotate x-tick labels
+            ax.set_xticks(range(len(teams)))
+            ax.set_xticklabels(teams, rotation=45, ha='right')
+
+            # adjust layout to make room for the team names
+            plt.subplots_adjust(bottom=0.15)
+
+            # mark the bar as revealed (so button becomes inactive)
+            pi_star_bars[label]['show'] = True  
+
+            # redraw the plot
+            plt.draw()
+
+    # create buttons 
+    button_ax_simple = plt.axes([0.91, 0.01, 0.037, 0.04])
+    button_simple = Button(button_ax_simple, 'AI')
+    button_simple.on_clicked(lambda event: reveal_pi_star_bar(pi_star_simple_label))
+
+    button_ax_proximity = plt.axes([0.955, 0.01, 0.037, 0.04])
+    button_proximity = Button(button_ax_proximity, 'AI+')
+    button_proximity.on_clicked(lambda event: reveal_pi_star_bar(pi_star_proximity_label))
+
     plt.show()
 
 if __name__ == "__main__":
@@ -202,7 +292,7 @@ if __name__ == "__main__":
                     human_vs_ai(state_mode, show_state)
                 else:
                     print("Please specify a STATE MODE ('simple' or 'proximity')")
-            # if no show_state flag is passed, run game with default values
+            # if no state_mode flag is passed, run game with default values
             else:
                 human_vs_ai()
         # 'best_policy_vs_ai' mode requires flag to choose state mode AND path to best policy
@@ -219,7 +309,8 @@ if __name__ == "__main__":
                     state_mode = 'proximity'
                     best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
                 else:
-                    print("Please specify STATE MODE of AI, then PATH to folder and NAME of best policy")
+                    print("Please specify PATH to folder and NAME of best policy, then STATE MODE of AI")
+            # if no state_mode flag is passed, run game with default values
             elif len(sys.argv) == 4: 
                 policy_folder = sys.argv[2]
                 policy_name = sys.argv[3]

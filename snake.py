@@ -505,8 +505,9 @@ class Snake:
         # initialise pygame 
         pygame.init()
 
-        # initialise game window (add height of info bar)
-        pygame.display.set_caption('Snake')
+        # initialise game window 
+        if self.team_name != None: pygame.display.set_caption(self.team_name)
+        else: pygame.display.set_caption('Snake')
         self.game_window = pygame.display.set_mode((self.box_length, self.box_height), pygame.NOFRAME)
         
         # FPS (frames per second) controller
