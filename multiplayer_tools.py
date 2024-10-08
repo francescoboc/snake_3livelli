@@ -188,6 +188,71 @@ def run_games_in_parallel(policies, team_names, shared_vars):
 
     return scores_dict
 
+# function to challenge ai and a human policy
+def human_policy_vs_ai(policies, team_names, shared_vars):
+    # unpack shared variables
+    box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, \
+        show_state_info, countdown_seconds = shared_vars 
+
+    # count policies to get number of teams
+    n_teams = 2
+
+    # get window size and positions
+    cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
+
+    seed = None
+    verbose = False
+
+    # create a multiprocessing manager to store scores
+    manager = multiprocessing.Manager()
+    scores_dict = manager.dict()
+
+    # create a barrier for all games to reach game_over 
+    # (+1 is to include the main process as well)
+    game_over_barrier = multiprocessing.Barrier(n_teams+1)
+
+    # create an event to signal the end of the winner display
+    winner_display_event = multiprocessing.Event()
+
+    # create a new process for each game
+    processes = []
+    for i in range(n_teams):
+        policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
+        # the first istance is the human policy, which needs state_mode = 'simple' to work
+        if i == 0:
+            shared_vars_copy = shared_vars.copy()
+            shared_vars_copy[6] = 'simple'
+            p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
+                policy, team_name, window_position, cell_size, shared_vars_copy, 
+                verbose, seed, scores_dict, game_over_barrier, winner_display_event))
+        else:
+            p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
+                policy, team_name, window_position, cell_size, shared_vars, 
+                verbose, seed, scores_dict, game_over_barrier, winner_display_event))
+        processes.append(p)
+        p.start()
+
+    # wait for all games to reach the game_over state (main process waits here too)
+    game_over_barrier.wait()
+
+    # once all the games has reached the game_over state, calculte team ranking
+    scores_dict = dict(scores_dict)
+    ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
+    winner_score, winner_name = ranking[0][0], ranking[0][1]
+
+    # display winner on a new sindow
+    display_winner(winner_score, winner_name)
+
+    # Signal all games to close
+    winner_display_event.set()
+
+    # wait for all processes to finish
+    for p in processes:
+        p.join()
+
+    return scores_dict
+
 # function to get screen resolution
 def get_screen_resolution(verbose=False):
     pygame.display.init()

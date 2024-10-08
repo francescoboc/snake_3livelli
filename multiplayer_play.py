@@ -6,7 +6,36 @@ from multiplayer_tools import *
 # challenge all the policies (demo one game) TODO change snake color
 # challenge all the policies with statistics TODO return id_color of winner
 # challenge best_policy vs ai TODO receives path to best policy and id_color
-# challenge human vs ai 
+# challenge human vs ai OK
+
+def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
+    # import default variables
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+
+    # visual and sound effects
+    show_compass = False
+    sound_effects = True
+
+    # overwrite default values
+    if mode is not None: state_mode = mode
+    if show_state is not None: show_compass = show_state
+
+    # put all shared variables into a list for convenience
+    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+
+    # load a saved policy
+    n_episodes = int(1e7)
+    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
+
+    # load a user policy
+    pi_user = load_user_policy(policy_name+'.txt', policy_folder, verbose=False)
+
+    policies, team_names = [pi_user, pi_star], [policy_name, 'AI']
+
+    # run the games in parallel
+    scores_dict = human_policy_vs_ai(policies, team_names, shared_vars)
 
 def human_vs_ai(mode=None, show_state=None):
     # import default variables
@@ -27,7 +56,7 @@ def human_vs_ai(mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
-    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
+    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
 
     policies, team_names = [None, pi_star], ['Umano', 'AI']
 
@@ -159,7 +188,7 @@ if __name__ == "__main__":
                 turn_folder = sys.argv[2]
                 statistical_challenge(turn_folder)
             else: 
-                print('Please specify path to policies folder')
+                print('Please specify PATH to policies folder')
         # 'human_vs_ai' mode requires flag to choose state mode
         elif game_mode == 'human_vs_ai':
             show_state = True
@@ -172,9 +201,28 @@ if __name__ == "__main__":
                     state_mode = 'proximity'
                     human_vs_ai(state_mode, show_state)
                 else:
-                    print("Please specify a state mode ('simple' or 'proximity')")
+                    print("Please specify a STATE MODE ('simple' or 'proximity')")
             # if no show_state flag is passed, run game with default values
             else:
                 human_vs_ai()
+        # 'best_policy_vs_ai' mode requires flag to choose state mode AND path to best policy
+        elif game_mode == 'best_policy_vs_ai':
+            show_state = True
+            if len(sys.argv) == 5: 
+                policy_folder = sys.argv[2]
+                policy_name = sys.argv[3]
+                if sys.argv[4] == 'simple':
+                    state_mode = 'simple'
+                    show_state = True
+                    best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
+                elif sys.argv[4] == 'proximity':
+                    state_mode = 'proximity'
+                    best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
+                else:
+                    print("Please specify STATE MODE of AI, then PATH to folder and NAME of best policy")
+            elif len(sys.argv) == 4: 
+                policy_folder = sys.argv[2]
+                policy_name = sys.argv[3]
+                best_policy_vs_ai(policy_folder, policy_name)
         else:
             print('Game mode not recognized!')

@@ -1,6 +1,6 @@
 # snake parameters
 box_size = 20
-snake_speed = 10
+snake_speed = 20
 
 # game parameters
 periodic = True

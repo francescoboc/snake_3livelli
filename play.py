@@ -11,7 +11,7 @@ seed_rng(seed)
 
 # game parameters
 box_size = 20
-snake_speed = 20
+snake_speed = 15
 periodic = True
 action_mode = 3
 rand_init_body_length = False
@@ -40,8 +40,8 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
 
 pi_star = None
 
-# load a saved policy
-n_episodes = int(1e7)
-pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
+# # load a saved policy
+# n_episodes = int(1e7)
+# pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes)
 
 snake.play(pi_star)
