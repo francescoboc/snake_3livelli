@@ -2,7 +2,8 @@ from tools import *
 from snake import *
 import multiprocessing
 
-color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'brown', 'grey']
+color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'grey', 'brown']
+color_schemes_rgb = [green, blue, red, orange, purple, pink, grey, brown]
 
 # test a single policy (to be used in multiprocessing loop)
 def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
@@ -154,8 +155,7 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     manager = multiprocessing.Manager()
     scores_dict = manager.dict()
 
-    # create a barrier for all games to reach game_over 
-    # (+1 is to include the main process as well)
+    # create a barrier for all games to reach game_over (+1 is to include the main process as well)
     game_over_barrier = multiprocessing.Barrier(n_teams+1)
 
     # create an event to signal the end of the winner display
@@ -227,13 +227,18 @@ def human_policy_vs_ai(policies, team_names, shared_vars):
         if i == 0:
             shared_vars_copy = shared_vars.copy()
             shared_vars_copy[6] = 'simple'
+            color_scheme = color_schemes[0]
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
-                policy, team_name, window_position, cell_size, shared_vars_copy, 
-                verbose, seed, scores_dict, game_over_barrier, winner_display_event))
+                policy, team_name, window_position, cell_size, shared_vars_copy,
+                color_scheme, verbose, seed, scores_dict, game_over_barrier, 
+                winner_display_event))
         else:
+            if state_mode == 'simple': color_scheme = 'grey'
+            elif state_mode == 'proximity': color_scheme = 'brown'
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars, 
-                verbose, seed, scores_dict, game_over_barrier, winner_display_event))
+                color_scheme, verbose, seed, scores_dict, game_over_barrier, 
+                winner_display_event))
         processes.append(p)
         p.start()
 
@@ -434,3 +439,10 @@ def display_winner(score, team_name):
                 pygame.display.quit()
                 return
 
+def load_policies_from_folder(policies_folder):
+    policies, team_names = [], []
+    files_list = sorted(os.listdir(policies_folder))
+    for filename in files_list:
+        policies.append(load_user_policy(filename, policies_folder))
+        team_names.append(filename.replace('.txt',''))
+    return policies, team_names

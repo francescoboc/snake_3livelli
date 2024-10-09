@@ -27,7 +27,7 @@ def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
-    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
     # load a user policy
     pi_user = load_user_policy(policy_name+'.txt', policy_folder, verbose=False)
@@ -56,7 +56,7 @@ def human_vs_ai(mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
-    pi_star = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
     policies, team_names = [None, pi_star], ['Umano', 'AI']
 
@@ -101,12 +101,8 @@ def challenge(turn_folder):
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
 
-    # load policies
-    policies, team_names = [], []
-    files_list = sorted(os.listdir(policies_folder))
-    for filename in files_list:
-        policies.append(load_user_policy(filename, policies_folder))
-        team_names.append(filename.replace('.txt',''))
+    # load policies and team names
+    policies, team_names = load_policies_from_folder(policies_folder)
 
     # run the games in parallel
     scores_dict = run_games_in_parallel(policies, team_names, shared_vars)
@@ -131,14 +127,16 @@ def statistical_challenge(turn_folder):
     # number of test games
     n_games = 1000
 
-    policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
-    for filename in sorted(os.listdir(policies_folder)):
-        policies.append(load_user_policy(filename, policies_folder))
-        team_names.append(filename.replace('.txt',''))
 
-    # run the games in parallel
+    # load policies and team names
+    policies, team_names = load_policies_from_folder(policies_folder)
+
+    # team_names list is ordered as color_schemes, so we can use it to map names to colors
+    color_mapping = {team_names[i]:color_schemes_rgb[i].normalize() for i in range(len(team_names))}
+
+    # test policies in parallel
     scores_dict = test_policies_in_parallel(policies, team_names, shared_vars, n_games)
 
     # get team ranking
@@ -152,29 +150,43 @@ def statistical_challenge(turn_folder):
 
     ########## PLOT BARS TO SHOW AVERAGE SCORES ########## 
 
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Button
+
+    # function to add average score text on top of each bar
+    def add_scores_to_bars(bars, scores):
+        for bar, score in zip(bars, scores):
+            height = bar.get_height()  # get bar height
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,  # x position (centered on bar)
+                height,  # y position (top of bar)
+                f'{score:.2f}',  # text (formatted score)
+                ha='center', va='bottom',  # horizontal and vertical alignment
+                fontsize=10  # text styling
+            )
+
     # create scores and teams lists
     scores = [rank[0] for rank in ranking]
     teams = [rank[1] for rank in ranking]
 
-    import matplotlib.pyplot as plt
-    from matplotlib.widgets import Button
+    # create ordered colors list
+    colors = [color_mapping[team] for team in teams]
 
-    # # disable the toolbar
-    # plt.rcParams['toolbar'] = 'none'
+    # disable the toolbar
+    plt.rcParams['toolbar'] = 'none'
 
     plot_title = 'Punteggio medio su 1000 partite'
     pi_star_simple_label = 'AI'
     pi_star_proximity_label = 'AI avanzata'
 
-    # TODO colors should be different for each policy
-    colors = ['green' for team in teams]
-    pi_star_simple_color = 'red'
-    pi_star_proximity_color = 'purple'
+    pi_star_simple_color = grey.normalize()
+    pi_star_proximity_color = brown.normalize()
 
     fig, ax = plt.subplots(figsize=(8,5.5))
     fig.tight_layout(pad=2)
     fig.canvas.manager.set_window_title('Sfida')
-    ax.bar(teams, scores, color=colors)
+    bars = ax.bar(teams, scores, color=colors)
+    add_scores_to_bars(bars, scores)
     ax.set_title(plot_title)
 
     # rotate x-tick labels
@@ -184,20 +196,20 @@ def statistical_challenge(turn_folder):
     # adjust layout to make room for the team names
     plt.subplots_adjust(bottom=0.15)
 
-    # TODO una volta fissate le policy, si puo direttamente scrivere qui la score media
-    # load and test learned policies
-    n_episodes = int(1e7)
-    state_mode = 'simple'
-    policy = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
-    pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # # load and test learned policies
+    # n_episodes = int(1e7)
+    # state_mode = 'simple'
+    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    # pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # state_mode = 'proximity'
+    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    # pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
 
-    n_episodes = int(1e7)
-    state_mode = 'proximity'
-    box_size = 30
-    policy = load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=False)
-    pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # no need to re-evaluate the learned policies everytime!
+    pi_star_simple_score = 46.11
+    pi_star_proximity_score = 56.08
 
     # prepare pi_star_bars dictionary with all info for the new score bars
     pi_star_bars = {
@@ -219,7 +231,8 @@ def statistical_challenge(turn_folder):
 
             # clear the existing plot and redraw everything
             ax.clear()  
-            ax.bar(teams, scores, color=colors)
+            bars = ax.bar(teams, scores, color=colors)
+            add_scores_to_bars(bars, scores)
             ax.set_title(plot_title)
 
             # rotate x-tick labels
@@ -321,6 +334,8 @@ if __name__ == "__main__":
                 policy_folder = sys.argv[2]
                 policy_name = sys.argv[3]
                 best_policy_vs_ai(policy_folder, policy_name)
+            else:
+                print("Please specify PATH to folder and NAME of best policy, then STATE MODE of AI")
         else:
             print('Please specify one game mode')
             print('Game modes:\n \

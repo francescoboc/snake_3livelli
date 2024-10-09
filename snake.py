@@ -68,14 +68,14 @@ class Snake:
         # load compass images
         if self.show_compass:
             self.compass_images = {
-                'N': pygame.image.load('./img/north.png'),
-                'NE': pygame.image.load('./img/north_east.png'),
-                'E': pygame.image.load('./img/east.png'),
-                'SE': pygame.image.load('./img/south_east.png'),
-                'S': pygame.image.load('./img/south.png'),
-                'SW': pygame.image.load('./img/south_west.png'),
-                'W': pygame.image.load('./img/west.png'),
-                'NW': pygame.image.load('./img/north_west.png')
+                'N': pygame.image.load('img/north.png'),
+                'NE': pygame.image.load('img/north_east.png'),
+                'E': pygame.image.load('img/east.png'),
+                'SE': pygame.image.load('img/south_east.png'),
+                'S': pygame.image.load('img/south.png'),
+                'SW': pygame.image.load('img/south_west.png'),
+                'W': pygame.image.load('img/west.png'),
+                'NW': pygame.image.load('img/north_west.png')
             }
 
             # resize images
@@ -85,13 +85,13 @@ class Snake:
             # load proximity images
             if self.state_mode == 'proximity':
                 self.proximity_images = {
-                    'f': pygame.image.load('./img/prox_f.png'),
-                    'l': pygame.image.load('./img/prox_l.png'),
-                    'r': pygame.image.load('./img/prox_r.png'),
-                    'fl': pygame.image.load('./img/prox_fl.png'),
-                    'fr': pygame.image.load('./img/prox_fr.png'),
-                    'lr': pygame.image.load('./img/prox_lr.png'),
-                    'flr': pygame.image.load('./img/prox_flr.png'),
+                    'f': pygame.image.load('img/prox_f.png'),
+                    'l': pygame.image.load('img/prox_l.png'),
+                    'r': pygame.image.load('img/prox_r.png'),
+                    'fl': pygame.image.load('img/prox_fl.png'),
+                    'fr': pygame.image.load('img/prox_fr.png'),
+                    'lr': pygame.image.load('img/prox_lr.png'),
+                    'flr': pygame.image.load('img/prox_flr.png'),
                 }
 
                 # resize images
@@ -480,7 +480,7 @@ class Snake:
         for i in range(self.countdown_seconds, 0, -1):
             # clear screen
             self.game_window.fill((black))
-            self.display_team_name(white)
+            self.display_team_name()
 
             # render countdown text
             countdown_text = self.countdown_font.render(str(i), True, white)
@@ -575,12 +575,18 @@ class Snake:
 
         # load sounds
         if self.sound_effects:
-            self.sound_chomp = pygame.mixer.Sound('./sound/chomp.mp3')
-            self.sound_proximity = pygame.mixer.Sound('./sound/prox_beep.wav')
-            self.sound_gameover = pygame.mixer.Sound('./sound/game_over.wav')
+            self.sound_chomp = pygame.mixer.Sound('sound/chomp.mp3')
+            self.sound_proximity = pygame.mixer.Sound('sound/prox_beep.wav')
+            self.sound_gameover = pygame.mixer.Sound('sound/game_over.wav')
 
-            # adjust volume
+            # adjust volumes
             self.sound_proximity.set_volume(0.5)
+
+        # load the food image 
+        self.food_image = pygame.image.load('img/apple.png')
+
+        # resize the image to match the cell size
+        self.food_image = pygame.transform.scale(self.food_image, (self.cell_size, self.cell_size))
 
     def get_eye_positions(self):
         # dictionary to map directions to eye positions
@@ -653,17 +659,16 @@ class Snake:
     def display_score(self, color):
         # create the display surface object 
         self.score_surface = self.main_font.render(f'{self.score}', True, color)
-        # Set transparency 
-        self.score_surface.set_alpha(int(0.75 * 255))
+        # self.score_surface.set_alpha(int(0.75 * 255))
 
         # display text
         self.game_window.blit(self.score_surface, (self.hor_shift, 0))
 
     # display team name onscreen
-    def display_team_name(self, text_color):
-        # create the display surface object 
-        self.team_name_surface = self.main_font.render(self.team_name, True, text_color)
-        self.team_name_surface.set_alpha(int(0.75 * 255))  
+    def display_team_name(self):
+        # create the surface object 
+        self.team_name_surface = self.main_font.render(self.team_name, True, self.end_color)
+        # self.team_name_surface.set_alpha(int(0.75 * 255))  
 
         # calculate the position to center the text
         text_rect = self.team_name_surface.get_rect(center=(self.box_length // 2, self.team_name_surface.get_height() // 2))
@@ -728,9 +733,12 @@ class Snake:
             body_rect = pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size)
             pygame.draw.rect(self.game_window, color, body_rect)
 
-        # draw food
-        food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-        pygame.draw.rect(self.game_window, brightRed, food_rect, border_radius=self.food_radius)
+        # # draw food
+        # food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
+        # pygame.draw.rect(self.game_window, brightRed, food_rect, border_radius=self.food_radius)
+
+        food_position = (self.food_position[0], self.food_position[1])
+        self.game_window.blit(self.food_image, food_position)
         
         # display score and state info
         self.display_score(white)
@@ -738,7 +746,7 @@ class Snake:
 
         # display team name
         if self.team_name != None:
-            self.display_team_name(white)
+            self.display_team_name()
 
         # draw window border (if PBC is not activated)
         # if not self.periodic:

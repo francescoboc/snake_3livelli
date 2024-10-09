@@ -32,14 +32,14 @@ lightOrange = pygame.Color(250, 217, 55)
 purple = pygame.Color(119, 59, 191)
 lightPurple = pygame.Color(226, 155, 250)
 
-brown = pygame.Color(110, 66, 80)
-lightBrown = pygame.Color(181, 140, 127)
-
 pink = pygame.Color(217, 76, 142)
 lightPink = pygame.Color(250, 187, 175)
 
 grey = pygame.Color(105, 101, 112)
 lightGrey = pygame.Color(166, 154, 156)
+
+brown = pygame.Color(110, 66, 80)
+lightBrown = pygame.Color(181, 140, 127)
 
 brightRed = pygame.Color(245, 61, 5)
 yellow = pygame.Color(252, 252, 25)
@@ -96,10 +96,10 @@ def seed_rng(seed=None, verbose=True):
     return seed
 
 # load a saved policy
-def load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose=True):
+def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
-    policy_name = f'pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}'
+    policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
     try: 
         policy = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
         if verbose:
@@ -109,10 +109,10 @@ def load_policy(periodic, box_size, action_mode, state_mode, n_episodes, verbose
     return policy
 
 # save a policy
-def save_policy(policy, periodic, box_size, action_mode, state_mode, n_episodes):
+def save_policy(policy, periodic, action_mode, state_mode, n_episodes):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
-    policy_name = f'pi_{box_size}_{action_mode}_{state_mode}_{n_episodes:.0e}'
+    policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
     np.save(f'{policy_folder}/{policy_name}.npy', policy)
     print(f'Policy {policy_name} saved!')
 
