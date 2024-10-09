@@ -17,12 +17,34 @@ signal.signal(signal.SIGINT, lambda x, y: sys.exit())
 rng = random.Random()
 
 # colors
-black = pygame.Color(15, 15, 15)
-white = pygame.Color(255, 255, 255)
-red = pygame.Color(245, 61, 5)
-green = pygame.Color(14, 171, 0)
-blue = pygame.Color(0, 0, 255)
+green = pygame.Color(6, 128, 81)
+lightGreen = pygame.Color(148, 191, 48)
+
+blue = pygame.Color(28, 117, 189)
+lightBlue = pygame.Color(73, 194, 242)
+
+red = pygame.Color(245, 49, 65)
+lightRed = pygame.Color(255, 112, 112)
+
+orange = pygame.Color(242, 98, 31)
+lightOrange = pygame.Color(250, 217, 55)
+
+purple = pygame.Color(119, 59, 191)
+lightPurple = pygame.Color(226, 155, 250)
+
+brown = pygame.Color(110, 66, 80)
+lightBrown = pygame.Color(181, 140, 127)
+
+pink = pygame.Color(217, 76, 142)
+lightPink = pygame.Color(250, 187, 175)
+
+grey = pygame.Color(105, 101, 112)
+lightGrey = pygame.Color(166, 154, 156)
+
+brightRed = pygame.Color(245, 61, 5)
 yellow = pygame.Color(252, 252, 25)
+white = pygame.Color(255, 255, 255)
+black = pygame.Color(15, 15, 15)
 
 # head directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']

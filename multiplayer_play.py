@@ -13,7 +13,7 @@ def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
-    # visual and sound effects
+    # overwrite default values
     show_compass = False
     sound_effects = True
 
@@ -42,7 +42,7 @@ def human_vs_ai(mode=None, show_state=None):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
-    # visual and sound effects
+    # overwrite default values
     show_compass = False
     sound_effects = True
 
@@ -90,7 +90,7 @@ def challenge(turn_folder):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
-    # visual and sound effects
+    # overwrite default values
     show_compass = True
     sound_effects = False
 
@@ -98,9 +98,11 @@ def challenge(turn_folder):
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
-    policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
+
+    # load policies
+    policies, team_names = [], []
     files_list = sorted(os.listdir(policies_folder))
     for filename in files_list:
         policies.append(load_user_policy(filename, policies_folder))
@@ -119,7 +121,7 @@ def statistical_challenge(turn_folder):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
 
-    # visual and sound effects
+    # overwrite default values
     sound_effects = False
 
     # put all shared variables into a list for convenience
@@ -127,7 +129,7 @@ def statistical_challenge(turn_folder):
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
 
     # number of test games
-    n_games = 100
+    n_games = 1000
 
     policies, team_names = [], []
     # all the policies are inside a subfolder 'strategie'
@@ -247,6 +249,12 @@ def statistical_challenge(turn_folder):
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print('Please specify one game mode')
+        print('Game modes:\n \
+        one_player\n \
+        challenge\n \
+        statistical_challenge\n \
+        human_vs_ai\n \
+        best_policy_vs_ai')
     else:
         game_mode = sys.argv[1]
 
@@ -285,7 +293,6 @@ if __name__ == "__main__":
             if len(sys.argv) == 3: 
                 if sys.argv[2] == 'simple':
                     state_mode = 'simple'
-                    show_state = True
                     human_vs_ai(state_mode, show_state)
                 elif sys.argv[2] == 'proximity':
                     state_mode = 'proximity'
@@ -303,7 +310,6 @@ if __name__ == "__main__":
                 policy_name = sys.argv[3]
                 if sys.argv[4] == 'simple':
                     state_mode = 'simple'
-                    show_state = True
                     best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
                 elif sys.argv[4] == 'proximity':
                     state_mode = 'proximity'
@@ -316,4 +322,10 @@ if __name__ == "__main__":
                 policy_name = sys.argv[3]
                 best_policy_vs_ai(policy_folder, policy_name)
         else:
-            print('Game mode not recognized!')
+            print('Please specify one game mode')
+            print('Game modes:\n \
+            one_player\n \
+            challenge\n \
+            statistical_challenge\n \
+            human_vs_ai\n \
+            best_policy_vs_ai')

@@ -17,6 +17,7 @@ class Snake:
             window_position=None,
             verbose=True,
             countdown_seconds=3,
+            color_scheme = 'green',
             food_rew=1.0, 
             lose_rew=-10.0, 
             step_rew=0.0,
@@ -62,6 +63,7 @@ class Snake:
         self.team_name = team_name
         self.window_position = window_position
         self.countdown_seconds = countdown_seconds
+        self.color_scheme = color_scheme
 
         # load compass images
         if self.show_compass:
@@ -478,6 +480,7 @@ class Snake:
         for i in range(self.countdown_seconds, 0, -1):
             # clear screen
             self.game_window.fill((black))
+            self.display_team_name(white)
 
             # render countdown text
             countdown_text = self.countdown_font.render(str(i), True, white)
@@ -535,11 +538,33 @@ class Snake:
         self.eye_offset = self.cell_size // 4
 
         # initial and final color of the snake
-        self.start_color = yellow
-        self.end_color = green
+        if self.color_scheme == 'green':
+            self.start_color = lightGreen
+            self.end_color = green
+        elif self.color_scheme == 'blue':
+            self.start_color = lightBlue
+            self.end_color = blue
+        elif self.color_scheme == 'red':
+            self.start_color = lightRed
+            self.end_color = red
+        elif self.color_scheme == 'orange':
+            self.start_color = lightOrange
+            self.end_color = orange
+        elif self.color_scheme == 'purple':
+            self.start_color = lightPurple
+            self.end_color = purple
+        elif self.color_scheme == 'pink':
+            self.start_color = lightPink
+            self.end_color = pink
+        elif self.color_scheme == 'brown':
+            self.start_color = lightBrown
+            self.end_color = brown
+        elif self.color_scheme == 'grey':
+            self.start_color = lightGrey
+            self.end_color = grey
 
         # color of the head
-        self.head_color = yellow
+        self.head_color = self.start_color
 
         # values to position text on screen
         self.vert_shift = self.main_font.get_height() + 5
@@ -583,16 +608,16 @@ class Snake:
         # set transparency level (0 fully transparent, 255 fully opaque) 
         overlay.set_alpha(50) 
 
-        # fill the surface with red color
-        overlay.fill(red)
+        # fill the surface with brightRed color
+        overlay.fill(brightRed)
 
         # blit the overlay onto the game window
         self.game_window.blit(overlay, (0, 0))
             
         # create a text surface on which text will be drawn
-        self.game_over_surface = self.game_over_font.render('GAME OVER!', True, red)
-        if self.score == 1: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTO', True, red)
-        else: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTI', True, red)
+        self.game_over_surface = self.game_over_font.render('GAME OVER!', True, brightRed)
+        if self.score == 1: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTO', True, brightRed)
+        else: self.game_over_surface1 = self.game_over_font.render(f'{self.score} PUNTI', True, brightRed)
         
         # create a rectangular object for the text 
         self.game_over_rect = self.game_over_surface.get_rect()
@@ -705,7 +730,7 @@ class Snake:
 
         # draw food
         food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
-        pygame.draw.rect(self.game_window, red, food_rect, border_radius=self.food_radius)
+        pygame.draw.rect(self.game_window, brightRed, food_rect, border_radius=self.food_radius)
         
         # display score and state info
         self.display_score(white)

@@ -1,6 +1,6 @@
 # snake parameters
 box_size = 20
-snake_speed = 15
+snake_speed = 13
 
 # game parameters
 periodic = True
@@ -16,4 +16,4 @@ state_mode = 'simple'
 show_compass = False
 sound_effects = True
 show_state_info = False
-countdown_seconds = 3
+countdown_seconds = 5

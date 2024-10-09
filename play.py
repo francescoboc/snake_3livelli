@@ -32,11 +32,13 @@ team_name = None
 window_position = None
 verbose = True
 countdown_seconds = 0
+color_scheme = 'brown'
 
 # create snake game object
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
         rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-        show_state_info, team_name, window_position, verbose, countdown_seconds)
+        show_state_info, team_name, window_position, verbose, countdown_seconds, 
+        color_scheme)
 
 pi_star = None
 

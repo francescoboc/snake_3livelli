@@ -2,6 +2,8 @@ from tools import *
 from snake import *
 import multiprocessing
 
+color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'brown', 'grey']
+
 # test a single policy (to be used in multiprocessing loop)
 def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, n_games=1000):
     # unpack shared variables
@@ -78,8 +80,8 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, v
     snake.play(policy)
 
 # run a single snake game (with multiprocessing barrier to wait for the other games to end)
-def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars, 
-        verbose, seed, scores_dict, game_over_barrier, winner_display_event):
+def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars,
+        color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, \
@@ -91,7 +93,8 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position, verbose, countdown_seconds)
+            show_state_info, team_name, window_position, verbose, countdown_seconds,
+            color_scheme)
 
     # play until game over
     snake.init_render()
@@ -161,9 +164,10 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     # create a new process for each game
     processes = []
     for i in range(n_teams):
+        color_scheme = color_schemes[i]
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
         p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
-            policy, team_name, window_position, cell_size, shared_vars, 
+            policy, team_name, window_position, cell_size, shared_vars, color_scheme, 
             verbose, seed, scores_dict, game_over_barrier, winner_display_event))
         processes.append(p)
         p.start()
