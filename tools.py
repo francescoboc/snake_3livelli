@@ -43,8 +43,8 @@ lightBrown = pygame.Color(181, 140, 127)
 
 brightRed = pygame.Color(245, 61, 5)
 yellow = pygame.Color(252, 252, 25)
-white = pygame.Color(255, 255, 255)
-black = pygame.Color(15, 15, 15)
+white = pygame.Color(253, 250, 230)
+black = pygame.Color(20, 20, 20)
 
 # head directions
 head_dirs = ['UP', 'RIGHT', 'DOWN', 'LEFT']

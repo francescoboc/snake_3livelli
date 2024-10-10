@@ -556,12 +556,14 @@ class Snake:
         elif self.color_scheme == 'pink':
             self.start_color = lightPink
             self.end_color = pink
-        elif self.color_scheme == 'brown':
-            self.start_color = lightBrown
-            self.end_color = brown
         elif self.color_scheme == 'grey':
             self.start_color = lightGrey
             self.end_color = grey
+        elif self.color_scheme == 'brown':
+            self.start_color = lightBrown
+            self.end_color = brown
+        else:
+            raise Warning('Invalid color scheme')
 
         # color of the head
         self.head_color = self.start_color

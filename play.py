@@ -31,8 +31,8 @@ cell_size = window_size//box_size
 team_name = None
 window_position = None
 verbose = True
-countdown_seconds = 0
-color_scheme = 'green'
+countdown_seconds = 3
+color_scheme = 'brown'
 
 # create snake game object
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
@@ -42,8 +42,8 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
 
 pi_star = None
 
-# load a saved policy
-n_episodes = int(1e7)
-pi_star = load_policy(periodic, action_mode, state_mode, n_episodes)
+# # load a saved policy
+# n_episodes = int(1e7)
+# pi_star = load_policy(periodic, action_mode, state_mode, n_episodes)
 
 snake.play(pi_star)
