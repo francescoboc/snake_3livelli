@@ -193,6 +193,9 @@ def statistical_challenge(turn_folder):
     ax.set_xticks(range(len(teams)))
     ax.set_xticklabels(teams, rotation=45, ha='right')
 
+    # remove y-ticks
+    ax.set_yticks([])
+
     # adjust layout to make room for the team names
     plt.subplots_adjust(bottom=0.15)
 
@@ -239,6 +242,9 @@ def statistical_challenge(turn_folder):
             ax.set_xticks(range(len(teams)))
             ax.set_xticklabels(teams, rotation=45, ha='right')
 
+            # remove y-ticks
+            ax.set_yticks([])
+
             # adjust layout to make room for the team names
             plt.subplots_adjust(bottom=0.15)
 
@@ -283,7 +289,7 @@ if __name__ == "__main__":
                     show_state = False
                     one_player(state_mode, show_state)
                 else:
-                    print("Please specify show_state flag ('show' or 'no_show')")
+                    print("Please specify show_state FLAG ('show' or 'no_show')")
             # if no show_state flag is passed, run game with default values
             else:
                 one_player()
@@ -293,7 +299,7 @@ if __name__ == "__main__":
                 turn_folder = sys.argv[2]
                 challenge(turn_folder)
             else: 
-                print('Please specify path to policies folder')
+                print('Please specify PATH to policies folder')
         elif game_mode == 'statistical_challenge':
             if len(sys.argv) == 3: 
                 turn_folder = sys.argv[2]
