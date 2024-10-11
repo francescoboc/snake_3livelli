@@ -13,7 +13,7 @@ seed_rng(seed)
 box_size = 20
 snake_speed = 12
 periodic = True
-action_mode = 3
+action_mode = 4
 rand_init_body_length = False
 rand_init_direction = False
 

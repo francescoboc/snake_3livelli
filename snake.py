@@ -755,7 +755,7 @@ class Snake:
         pygame.draw.rect(self.game_window, white, self.game_window.get_rect(), 1)
 
         # FPS/refresh Rate (increase speed with score)
-        self.fps.tick(self.snake_speed + self.score/10)
+        self.fps.tick(self.snake_speed + self.score/8)
 
         # refresh game screen
         pygame.display.flip()

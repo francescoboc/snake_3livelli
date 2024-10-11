@@ -27,6 +27,7 @@ def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
+    action_mode = 3
     pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
     # load a user policy
@@ -56,6 +57,7 @@ def human_vs_ai(mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
+    action_mode = 3
     pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
     policies, team_names = [None, pi_star], ['Umano', 'AI']
@@ -137,7 +139,7 @@ def statistical_challenge(turn_folder):
     color_mapping = {team_names[i]:color_schemes_rgb[i].normalize() for i in range(len(team_names))}
 
     # test policies in parallel
-    scores_dict = test_policies_in_parallel(policies, team_names, shared_vars, n_games)
+    scores_dict, seeds_dict = test_policies_in_parallel(policies, team_names, shared_vars, n_games)
 
     # get team ranking
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
@@ -146,7 +148,9 @@ def statistical_challenge(turn_folder):
     save_path = f'{turn_folder}/ranking.txt'
     with open(save_path, 'w') as file:
         for score, team_name in ranking:
-            file.write(f"{score:.3f}\t{team_name}\n")
+            # get the corresponding seed for the team
+            seed = seeds_dict[team_name]  
+            file.write(f"{score:.3f}\t{team_name}\t{seed}\n")
 
     ########## PLOT BARS TO SHOW AVERAGE SCORES ########## 
 
