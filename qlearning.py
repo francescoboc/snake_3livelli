@@ -1,4 +1,7 @@
+import random
 from tools import *
+
+rng = random.Random()
 
 class QLearningAgent:
     def __init__(self, 

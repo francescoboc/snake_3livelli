@@ -1,3 +1,4 @@
+import random
 from tools import *
 
 class Snake:
@@ -18,6 +19,7 @@ class Snake:
             verbose=True,
             countdown_seconds=3,
             color_scheme = 'green',
+            seed = None,
             food_rew=1.0, 
             lose_rew=-10.0, 
             step_rew=0.0,
@@ -65,6 +67,16 @@ class Snake:
         self.countdown_seconds = countdown_seconds
         self.color_scheme = color_scheme
 
+        # create a random number generator object
+        self.rng = random.Random()
+        seed = self.seed_rng(seed)
+        if verbose: print(f'RNG seed = {seed}')
+
+        # seed the RNG
+        if seed is None: self.seed = random.randrange(sys.maxsize)
+        else: self.seed = seed
+        self.rng.seed(self.seed)
+
         # load compass images
         if self.show_compass:
             self.compass_images = {
@@ -106,8 +118,8 @@ class Snake:
                     'LEFT': -270,
                     }
 
-        # reset the environment
-        self.reset()
+        # # reset the environment
+        # self.reset()
 
         # show info in terminal
         if verbose:
@@ -117,6 +129,13 @@ class Snake:
             print(f'Periodic = {periodic}')
             print(f'Random initial body length = {rand_init_body_length}')
             print(f'Random initial direction = {rand_init_direction}')
+
+    # seed the RNG
+    def seed_rng(self, seed=None):
+        if seed is None: 
+            seed = random.randrange(sys.maxsize)
+        self.rng.seed(seed)
+        return seed
 
     # buil list of actions
     def initialize_actions(self, action_mode):
@@ -175,11 +194,11 @@ class Snake:
     # reset the environment and output the corresponding state
     def reset(self):
         if self.rand_init_body_length:
-            size = rng.randrange(init_size,int(self.box_size/2))
+            size = self.rng.randrange(init_size,int(self.box_size/2))
         else:
             size = init_size
         if self.rand_init_direction:
-            direction = rng.choice(head_dirs)
+            direction = self.rng.choice(head_dirs)
         else:
             direction = init_direction
 
@@ -297,8 +316,8 @@ class Snake:
 
     # spawn food at random locations avoiding overlap with snake body
     def spawn_food(self):
-        self.food_position = [rng.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
-                              rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
+        self.food_position = [self.rng.randrange(1, (self.box_length//self.cell_size)) * self.cell_size, 
+                              self.rng.randrange(1, (self.box_height//self.cell_size)) * self.cell_size]
         if self.food_position in self.body:
             self.spawn_food()
         self.food_eaten = False

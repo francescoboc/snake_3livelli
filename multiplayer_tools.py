@@ -25,7 +25,7 @@ def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, s
 
     scores, seeds = [], []
     for n in range(n_games):
-        seed = seed_rng(verbose=False)
+        seed = snake.seed_rng()
         score, truncated = snake.play(policy, render=False)
         scores.append(score)
         seeds.append(seed)
@@ -35,6 +35,8 @@ def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, s
 
     # get seed that gave best score
     best_seed = seeds[np.argmax(scores)]
+
+    print(f'{team_name}    {np.max(scores)}')
 
     # append mean score to the shared scores list
     if scores_dict is not None:
@@ -59,6 +61,8 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     scores_dict = manager.dict()
     seeds_dict = manager.dict()
 
+    print(f'Team\tPunteggio max')
+
     # create a new process for each game
     processes = []
     for i in range(n_teams):
@@ -81,13 +85,10 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, v
         rand_init_direction, state_mode, show_compass, sound_effects, \
         show_state_info, countdown_seconds = shared_vars 
 
-    # seed the RNG
-    seed_rng(seed, verbose=False)
-
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position, verbose, countdown_seconds)
+            show_state_info, team_name, window_position, verbose, countdown_seconds, seed=seed)
 
     # play the game with the provided policy
     snake.play(policy)
@@ -100,14 +101,11 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         rand_init_direction, state_mode, show_compass, sound_effects, \
         show_state_info, countdown_seconds = shared_vars 
 
-    # seed the RNG
-    seed_rng(seed, verbose=False)
-
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
             show_state_info, team_name, window_position, verbose, countdown_seconds,
-            color_scheme)
+            color_scheme, seed)
 
     # play until game over
     snake.init_render()
@@ -148,7 +146,7 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
             pygame.event.pump()  
 
 # function to launch multiple games in parallel
-def run_games_in_parallel(policies, team_names, shared_vars):
+def run_games_in_parallel(policies, team_names, shared_vars, seeds=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, \
@@ -160,8 +158,8 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     # get window size and positions
     cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
 
-    seed = None
     verbose = False
+    if seeds is None: seed = None
 
     # create a multiprocessing manager to store scores
     manager = multiprocessing.Manager()
@@ -178,6 +176,9 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     for i in range(n_teams):
         color_scheme = color_schemes[i]
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
+        # if a seeds list was passed, read the corresponding seed
+        if seeds is not None:
+            seed = seeds[i]
         # little hack: whenever we are using an actual policy (and not human input),
         # make sure that the action mode is set to 3!
         if policy != None:
@@ -214,7 +215,7 @@ def run_games_in_parallel(policies, team_names, shared_vars):
     return scores_dict
 
 # function to challenge ai and a human policy
-def human_policy_vs_ai(policies, team_names, shared_vars):
+def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_scheme='green'):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, \
@@ -226,7 +227,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars):
     # get window size and positions
     cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
 
-    seed = None
+    # shut up
     verbose = False
 
     # create a multiprocessing manager to store scores
@@ -248,14 +249,19 @@ def human_policy_vs_ai(policies, team_names, shared_vars):
         if i == 0:
             shared_vars_copy = shared_vars.copy()
             shared_vars_copy[6] = 'simple'
-            color_scheme = color_schemes[0]
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars_copy,
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
                 winner_display_event))
+        # the second istance is the RL policy, and we use the best seed to show it
         else:
-            if state_mode == 'simple': color_scheme = 'grey'
-            elif state_mode == 'proximity': color_scheme = 'brown'
+            if state_mode == 'simple': 
+                color_scheme = 'grey'
+                # TODO put here the seed of the best policy!!
+                seed = 2387141371169778678
+            elif state_mode == 'proximity': 
+                color_scheme = 'brown'
+                seed = 666
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars, 
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
@@ -467,3 +473,14 @@ def load_policies_from_folder(policies_folder):
         policies.append(load_user_policy(filename, policies_folder))
         team_names.append(filename.replace('.txt',''))
     return policies, team_names
+
+def load_ranking(turn_folder):
+    ranking_file = turn_folder + '/ranking.txt'
+    scores, seeds = {}, {}
+    try: lines = np.loadtxt(ranking_file, delimiter='\t', dtype=str)
+    except: raise Warning('Ranking file not found! Did you run the statistical challenge?')
+    for line in lines:
+        team_name = line[1]
+        scores[team_name] = float(line[0])
+        seeds[team_name] = int(line[2])
+    return scores, seeds

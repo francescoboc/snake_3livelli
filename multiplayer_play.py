@@ -1,14 +1,6 @@
 from multiplayer_tools import *
 
-# GAME MODES:
-# demo for one player with no state info OK
-# demo for one player with state info OK
-# challenge all the policies (demo one game) TODO change snake color
-# challenge all the policies with statistics TODO return id_color of winner
-# challenge best_policy vs ai TODO receives path to best policy and id_color
-# challenge human vs ai OK
-
-def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
+def best_policy_vs_ai(turn_folder, team_name, mode=None, show_state=None, seed=None):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
         rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
@@ -16,6 +8,9 @@ def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
     # overwrite default values
     show_compass = False
     sound_effects = True
+
+    # this is important! the policies are all defined with 3 actions
+    action_mode = 3
 
     # overwrite default values
     if mode is not None: state_mode = mode
@@ -27,16 +22,22 @@ def best_policy_vs_ai(policy_folder, policy_name, mode=None, show_state=None):
 
     # load a saved policy
     n_episodes = int(1e7)
-    action_mode = 3
     pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
-    # load a user policy
-    pi_user = load_user_policy(policy_name+'.txt', policy_folder, verbose=False)
+    # load a user policy from a turn folder
+    policy_folder = turn_folder + '/strategie'
+    policy_name = team_name + '.txt'
+    pi_user = load_user_policy(policy_name, policy_folder, verbose=False)
 
-    policies, team_names = [pi_user, pi_star], [policy_name, 'AI']
+    policies, team_names = [pi_user, pi_star], [team_name, 'AI']
+
+    # map team_name to corresponding color by loading the list of teams
+    policy_folder, team_names_folder = load_policies_from_folder(policy_folder)
+    color_mapping = {team_names_folder[i]:color_schemes[i] for i in range(len(team_names_folder))}
+    color_scheme = color_mapping[team_name]
 
     # run the games in parallel
-    scores_dict = human_policy_vs_ai(policies, team_names, shared_vars)
+    scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed, color_scheme)
 
 def human_vs_ai(mode=None, show_state=None):
     # import default variables
@@ -113,6 +114,39 @@ def challenge(turn_folder):
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
+# show the challenge but with the best run of each game
+def challenge_best_seeds(turn_folder):
+    # import default variables
+    from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+
+    # overwrite default values
+    show_compass = True
+    sound_effects = False
+
+    # put all shared variables into a list for convenience
+    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+
+    # all the policies are inside a subfolder 'strategie'
+    policies_folder = f'{turn_folder}/strategie'
+
+    # load policies and team names
+    policies, team_names = load_policies_from_folder(policies_folder)
+
+    # load ranking file (these are dictionaries)
+    mean_scores, best_seeds = load_ranking(turn_folder)
+
+    # the seeds list needs to be arranged as team_names
+    ordered_seeds = [best_seeds[team_name] for team_name in team_names]
+
+    # run the games in parallel
+    scores_dict = run_games_in_parallel(policies, team_names, shared_vars, ordered_seeds)
+
+    # get team ranking
+    ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
+    winner_score, winner_name = ranking[0][0], ranking[0][1]
+
 # challenge all the policies (in .txt format) with statistics (no rendering)
 def statistical_challenge(turn_folder):
     # import default variables
@@ -139,6 +173,7 @@ def statistical_challenge(turn_folder):
     color_mapping = {team_names[i]:color_schemes_rgb[i].normalize() for i in range(len(team_names))}
 
     # test policies in parallel
+    print('Valutazione strategie in corso...')
     scores_dict, seeds_dict = test_policies_in_parallel(policies, team_names, shared_vars, n_games)
 
     # get team ranking
@@ -276,8 +311,10 @@ if __name__ == "__main__":
         one_player\n \
         challenge\n \
         statistical_challenge\n \
+        challenge_best\n \
         human_vs_ai\n \
         best_policy_vs_ai')
+
     else:
         game_mode = sys.argv[1]
 
@@ -293,64 +330,80 @@ if __name__ == "__main__":
                     show_state = False
                     one_player(state_mode, show_state)
                 else:
-                    print("Please specify show_state FLAG ('show' or 'no_show')")
+                    raise Warning("Please specify show_state FLAG ('show' or 'no_show')")
             # if no show_state flag is passed, run game with default values
             else:
                 one_player()
+
         # 'challenge' mode requires path to policies folder as a second argument
         elif game_mode == 'challenge':
             if len(sys.argv) == 3: 
                 turn_folder = sys.argv[2]
                 challenge(turn_folder)
             else: 
-                print('Please specify PATH to policies folder')
+                raise Warning('Please specify PATH to policies folder')
+
+        # similar to challenge but there's no render of the games, only a bar plot of statistics
         elif game_mode == 'statistical_challenge':
             if len(sys.argv) == 3: 
                 turn_folder = sys.argv[2]
                 statistical_challenge(turn_folder)
             else: 
-                print('Please specify PATH to policies folder')
+                raise Warning('Please specify PATH to policies folder')
+
+        # same as challenge mode but uses best seeds (to do AFTER statistical_challenge)
+        elif game_mode == 'challenge_best':
+            if len(sys.argv) == 3: 
+                turn_folder = sys.argv[2]
+                challenge_best_seeds(turn_folder)
+            else: 
+                raise Warning('Please specify PATH to policies folder')
+
         # 'human_vs_ai' mode requires flag to choose state mode
         elif game_mode == 'human_vs_ai':
             show_state = True
             if len(sys.argv) == 3: 
                 if sys.argv[2] == 'simple':
                     state_mode = 'simple'
-                    human_vs_ai(state_mode, show_state)
                 elif sys.argv[2] == 'proximity':
                     state_mode = 'proximity'
-                    human_vs_ai(state_mode, show_state)
                 else:
-                    print("Please specify a STATE MODE ('simple' or 'proximity')")
+                    raise Warning("Please specify a STATE MODE ('simple' or 'proximity')")
+                human_vs_ai(state_mode, show_state)
             # if no state_mode flag is passed, run game with default values
             else:
                 human_vs_ai()
-        # 'best_policy_vs_ai' mode requires flag to choose state mode AND path to best policy
+
+        # 'best_policy_vs_ai' mode reads the best team from ranking file and asks for state mode
         elif game_mode == 'best_policy_vs_ai':
             show_state = True
-            if len(sys.argv) == 5: 
-                policy_folder = sys.argv[2]
-                policy_name = sys.argv[3]
-                if sys.argv[4] == 'simple':
+            if len(sys.argv) == 4 or len(sys.argv) == 5:
+                turn_folder = sys.argv[2]
+                if sys.argv[3] == 'simple':
                     state_mode = 'simple'
-                    best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
-                elif sys.argv[4] == 'proximity':
+                elif sys.argv[3] == 'proximity':
                     state_mode = 'proximity'
-                    best_policy_vs_ai(policy_folder, policy_name, state_mode, show_state)
                 else:
-                    print("Please specify PATH to folder and NAME of best policy, then STATE MODE of AI")
-            # if no state_mode flag is passed, run game with default values
-            elif len(sys.argv) == 4: 
-                policy_folder = sys.argv[2]
-                policy_name = sys.argv[3]
-                best_policy_vs_ai(policy_folder, policy_name)
+                    raise Warning("Please specify a STATE MODE ('simple' or 'proximity')")
+                # load ranking file
+                mean_scores, best_seeds = load_ranking(turn_folder)
+                # select which ranking position to challenge
+                if len(sys.argv) == 5: position = int(sys.argv[4])
+                else: position = 1
+                if position > len(mean_scores):
+                    raise Warning(f'Position {position} does not exist in this ranking file!')
+                team_name =  list(best_seeds.keys())[position-1]
+                seed = best_seeds[team_name]
+                best_policy_vs_ai(turn_folder, team_name, state_mode, show_state, seed)
             else:
-                print("Please specify PATH to folder and NAME of best policy, then STATE MODE of AI")
+                raise Warning("Please specify PATH to turn folder, STATE MODE of AI, ranking POSITION")
+
         else:
             print('Please specify one game mode')
             print('Game modes:\n \
             one_player\n \
             challenge\n \
             statistical_challenge\n \
+            challenge_best\n \
             human_vs_ai\n \
             best_policy_vs_ai')

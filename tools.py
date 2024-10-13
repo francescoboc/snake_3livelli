@@ -1,4 +1,4 @@
-import random, sys, signal, os, time
+import sys, signal, os, time
 from tqdm import tqdm
 import numpy as np
 
@@ -12,9 +12,6 @@ FONT_PATH = 'fonts/pixel_emulator.otf'
 # hack to prevent raising KeyboardInterrupt when stopping the script with ctrl-c
 # https://stackoverflow.com/questions/7073268/remove-traceback-in-python-on-ctrl-c
 signal.signal(signal.SIGINT, lambda x, y: sys.exit())
-
-# create the random number generator object
-rng = random.Random()
 
 # colors
 green = pygame.Color(6, 128, 81)
@@ -86,15 +83,6 @@ def read_esc():
                 escape_pressed = True
     return escape_pressed
 
-# initialise the RNG with a given seed or a random one
-def seed_rng(seed=None, verbose=True):
-    if seed is None:
-        seed = random.randrange(sys.maxsize)
-    rng.seed(seed)
-    if verbose:
-        print(f'RNG seed = {seed}')
-    return seed
-
 # load a saved policy
 def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True):
     if periodic: policy_folder = f'policies/periodic'
@@ -155,7 +143,7 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
     if use_tqdm: iterator = tqdm(range(n_games), ascii=' █')
     else: iterator = range(n_games)
     for n in iterator:
-        seed = seed_rng(verbose=False)
+        seed = snake.seed_rng()
         score, truncated = snake.play(policy, render=False)
         seeds.append(seed)
         scores.append(score)
@@ -170,5 +158,8 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
     if verbose:
         print(f'Mean score: {mean_score:.3f}, Truncated episodes ratio: {trun_ratio:.2f}')
         print(f'Best score: {best_score}, Seed: {best_seed}')
+
+    snake.seed_rng(best_seed)
+    score, truncated = snake.play(policy, render=True)
 
     return mean_score, trun_ratio
