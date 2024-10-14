@@ -31,7 +31,7 @@ class Snake:
         self.box_size = box_size
         self.snake_speed = snake_speed
         self.periodic = periodic
-        self.box_size_sq = box_size*box_size
+        self.box_size_sq = box_size*4
 
         # calculate size of the simulation box
         self.box_length = cell_size*box_size
@@ -455,9 +455,10 @@ class Snake:
         return truncated
 
     # play with a given policy or interactively
-    def play(self, policy=None, render=True):
+    def play(self, policy=None, render=True, save_video=False):
         if render:
             self.init_render()
+            if save_video: self.frames = []  # store frames for the video
             if self.countdown_seconds > 0: self.countdown()
 
         # reset the game
@@ -482,17 +483,37 @@ class Snake:
             if terminated or truncated:
                 if render:
                     self.game_over()
+                    if save_video: 
+                        self.capture_frame()
+                        self.capture_frame()
                 pygame.quit()
                 return self.score, truncated
 
             if render:
                 self.render_frame()
+                if save_video: self.capture_frame()
 
             # shift state
             state = next_state
         return self.score, truncated
 
     ############################## RENDERING METHODS ##############################
+
+    # capture the current frame from the Pygame window
+    def capture_frame(self):
+        # get the current frame as an array
+        frame = pygame.surfarray.array3d(pygame.display.get_surface())
+        # convert from (width, height, colors) to (height, width, colors)
+        frame = frame.transpose([1, 0, 2])
+        self.frames.append(frame)
+
+    # save the collected frames as a video using imageio
+    def save_video(self, video_path, fps=12):
+        import imageio
+        with imageio.get_writer(video_path, fps=fps) as video:
+            for frame in self.frames:
+                video.append_data(frame)
+        print(f"Video saved as {video_path}")
 
     # display a countdown before starting the game
     def countdown(self):

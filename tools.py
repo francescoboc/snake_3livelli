@@ -54,7 +54,7 @@ prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 
 # initial direction and size of the snake
 init_direction = 'RIGHT' 
-init_size = 4
+init_size = 5
 
 # read keys pressed by the user
 def read_keys():
@@ -84,10 +84,13 @@ def read_esc():
     return escape_pressed
 
 # load a saved policy
-def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True):
+def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True, label=None):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
-    policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
+    if label is not None:
+        policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}_{label}'
+    else:
+        policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
     try: 
         policy = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
         if verbose:
@@ -97,10 +100,13 @@ def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True):
     return policy
 
 # save a policy
-def save_policy(policy, periodic, action_mode, state_mode, n_episodes):
+def save_policy(policy, periodic, action_mode, state_mode, n_episodes, label=None):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
-    policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
+    if label is not None:
+        policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}_{label}'
+    else:
+        policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
     np.save(f'{policy_folder}/{policy_name}.npy', policy)
     print(f'Policy {policy_name} saved!')
 
@@ -159,7 +165,8 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
         print(f'Mean score: {mean_score:.3f}, Truncated episodes ratio: {trun_ratio:.2f}')
         print(f'Best score: {best_score}, Seed: {best_seed}')
 
-    snake.seed_rng(best_seed)
-    score, truncated = snake.play(policy, render=True)
+    # # render best game
+    # snake.seed_rng(best_seed)
+    # score, truncated = snake.play(policy, render=True)
 
     return mean_score, trun_ratio

@@ -6,11 +6,11 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed for the RNG
-seed = 421
+seed = 6767
 
 # game parameters
 box_size = 20
-snake_speed = 12
+snake_speed = 50
 periodic = True
 action_mode = 3
 rand_init_body_length = False
@@ -21,17 +21,22 @@ state_mode = 'simple'
 # state_mode = 'proximity'
 
 # visual and sound effects
-show_compass = False
+show_compass = True
 sound_effects = True
 show_state_info = False
-window_size = 600
+window_size = 900
 cell_size = window_size//box_size
 
-team_name = None
+# load a saved policy
+n_episodes = int(1e5)
+
+policy = load_policy(periodic, action_mode, state_mode, n_episodes, label='demo')
+
+team_name = f'AI | {n_episodes} partite'
 window_position = None
-verbose = True
-countdown_seconds = 3
-color_scheme = 'brown'
+verbose = False
+countdown_seconds = 0
+color_scheme = 'grey'
 
 # create snake game object
 snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
@@ -39,13 +44,9 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
         show_state_info, team_name, window_position, verbose, countdown_seconds, 
         color_scheme, seed)
 
-policy = None
-
-# policy = load_user_policy('i carciofi.txt', 'test_turno/strategie')
-
-# load a saved policy
-# n_episodes = int(1e7)
-n_episodes = int(1)
-policy = load_policy(periodic, action_mode, state_mode, n_episodes, label='demo')
-
 snake.play(policy)
+
+# snake.play(policy, save_video=True)
+# video_path = f'demo_{n_episodes}.mp4'
+# snake.save_video(video_path, fps=12)
+
