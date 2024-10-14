@@ -257,11 +257,9 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
         else:
             if state_mode == 'simple': 
                 color_scheme = 'grey'
-                # TODO put here the seed of the best policy!!
-                seed = 2387141371169778678
+                # TODO put here seed of AI or use the same seed of human policy
             elif state_mode == 'proximity': 
                 color_scheme = 'brown'
-                seed = 666
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars, 
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 

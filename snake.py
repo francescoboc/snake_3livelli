@@ -31,7 +31,7 @@ class Snake:
         self.box_size = box_size
         self.snake_speed = snake_speed
         self.periodic = periodic
-        self.box_size_sq = box_size*4
+        self.box_size_sq = box_size*box_size
 
         # calculate size of the simulation box
         self.box_length = cell_size*box_size

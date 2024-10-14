@@ -209,7 +209,8 @@ def statistical_challenge(turn_folder):
                 height,  # y position (top of bar)
                 f'{score:.2f}',  # text (formatted score)
                 ha='center', va='bottom',  # horizontal and vertical alignment
-                fontsize=10  # text styling
+                fontsize=12,
+                weight = 'bold'
             )
 
     # create scores and teams lists
@@ -234,33 +235,33 @@ def statistical_challenge(turn_folder):
     fig.canvas.manager.set_window_title('Sfida')
     bars = ax.bar(teams, scores, color=colors)
     add_scores_to_bars(bars, scores)
-    ax.set_title(plot_title)
+    ax.set_title(plot_title, weight='bold')
 
     # rotate x-tick labels
     ax.set_xticks(range(len(teams)))
-    ax.set_xticklabels(teams, rotation=45, ha='right')
+    ax.set_xticklabels(teams, rotation=45, ha='right', fontsize=12, weight='bold')
 
     # remove y-ticks
     ax.set_yticks([])
 
     # adjust layout to make room for the team names
-    plt.subplots_adjust(bottom=0.15)
+    plt.subplots_adjust(bottom=0.17)
 
-    # load and test learned policies
-    n_episodes = int(1e7)
-    state_mode = 'simple'
-    action_mode = 3
-    policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
-    pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
-    state_mode = 'proximity'
-    policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
-    pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # # load and test learned policies
+    # n_episodes = int(1e7)
+    # state_mode = 'simple'
+    # action_mode = 3
+    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    # pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # state_mode = 'proximity'
+    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    # pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
 
-    # # no need to re-evaluate the learned policies everytime!
-    # pi_star_simple_score = 46.11
-    # pi_star_proximity_score = 56.08
+    # no need to re-evaluate the learned policies everytime!
+    pi_star_simple_score = 46.11
+    pi_star_proximity_score = 56.08
 
     # prepare pi_star_bars dictionary with all info for the new score bars
     pi_star_bars = {
@@ -284,17 +285,17 @@ def statistical_challenge(turn_folder):
             ax.clear()  
             bars = ax.bar(teams, scores, color=colors)
             add_scores_to_bars(bars, scores)
-            ax.set_title(plot_title)
+            ax.set_title(plot_title, weight='bold')
 
             # rotate x-tick labels
             ax.set_xticks(range(len(teams)))
-            ax.set_xticklabels(teams, rotation=45, ha='right')
+            ax.set_xticklabels(teams, rotation=45, ha='right', fontsize=12, weight='bold')
 
             # remove y-ticks
             ax.set_yticks([])
 
             # adjust layout to make room for the team names
-            plt.subplots_adjust(bottom=0.15)
+            plt.subplots_adjust(bottom=0.17)
 
             # mark the bar as revealed (so button becomes inactive)
             pi_star_bars[label]['show'] = True  
@@ -401,8 +402,9 @@ if __name__ == "__main__":
                 else: position = 1
                 if position > len(mean_scores):
                     raise Warning(f'Position {position} does not exist in this ranking file!')
-                team_name =  list(best_seeds.keys())[position-1]
-                seed = best_seeds[team_name]
+                team_name =  list(mean_scores.keys())[position-1]
+                # seed = best_seeds[team_name]
+                seed = random.randrange(sys.maxsize)
                 best_policy_vs_ai(turn_folder, team_name, state_mode, show_state, seed)
             else:
                 raise Warning("Please specify PATH to turn folder, STATE MODE of AI, ranking POSITION")
