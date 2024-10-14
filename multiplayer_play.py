@@ -63,8 +63,12 @@ def human_vs_ai(mode=None, show_state=None):
 
     policies, team_names = [None, pi_star], ['Umano', 'AI']
 
+    # pass the same seed to all the games
+    seed = random.randrange(sys.maxsize)
+    seeds = [seed for t in range(len(team_names))]
+
     # run the games in parallel
-    scores_dict = run_games_in_parallel(policies, team_names, shared_vars)
+    scores_dict = run_games_in_parallel(policies, team_names, shared_vars, seeds)
 
 # demo for one player 
 def one_player(mode=None, show_state=None):
@@ -107,8 +111,12 @@ def challenge(turn_folder):
     # load policies and team names
     policies, team_names = load_policies_from_folder(policies_folder)
 
+    # pass the same seed to all the games
+    seed = random.randrange(sys.maxsize)
+    seeds = [seed for t in range(len(team_names))]
+
     # run the games in parallel
-    scores_dict = run_games_in_parallel(policies, team_names, shared_vars)
+    scores_dict = run_games_in_parallel(policies, team_names, shared_vars, seeds)
 
     # get team ranking
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
@@ -238,20 +246,21 @@ def statistical_challenge(turn_folder):
     # adjust layout to make room for the team names
     plt.subplots_adjust(bottom=0.15)
 
-    # # load and test learned policies
-    # n_episodes = int(1e7)
-    # state_mode = 'simple'
-    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
-    # pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
-    # state_mode = 'proximity'
-    # policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
-    # pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
-    #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    # load and test learned policies
+    n_episodes = int(1e7)
+    state_mode = 'simple'
+    action_mode = 3
+    policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star_simple_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
+    state_mode = 'proximity'
+    policy = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+    pi_star_proximity_score, _ = test_policy(action_mode, state_mode, box_size, periodic, 
+            rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
 
-    # no need to re-evaluate the learned policies everytime!
-    pi_star_simple_score = 46.11
-    pi_star_proximity_score = 56.08
+    # # no need to re-evaluate the learned policies everytime!
+    # pi_star_simple_score = 46.11
+    # pi_star_proximity_score = 56.08
 
     # prepare pi_star_bars dictionary with all info for the new score bars
     pi_star_bars = {

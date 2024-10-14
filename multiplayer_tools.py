@@ -292,9 +292,11 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
 # function to get screen resolution
 def get_screen_resolution(verbose=False):
     pygame.display.init()
+    # get the number of displays and their sizes
+    display_count = pygame.display.get_num_displays()
     display_sizes = pygame.display.get_desktop_sizes()
     pygame.display.quit()
-    if len(display_sizes)==1:
+    if display_count==1:
         resolution = display_sizes[0]
         if verbose: print(f'Primary screen detected with resolution {resolution}')
     else:
