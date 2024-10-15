@@ -477,7 +477,7 @@ def load_policies_from_folder(policies_folder):
 def load_ranking(turn_folder):
     ranking_file = turn_folder + '/ranking.txt'
     scores, seeds = {}, {}
-    try: lines = np.loadtxt(ranking_file, delimiter='\t', dtype=str)
+    try: lines = np.loadtxt(ranking_file, delimiter='\t', dtype=str, ndmin=2)
     except: raise Warning('Ranking file not found! Did you run the statistical challenge?')
     for line in lines:
         team_name = line[1]

@@ -230,12 +230,13 @@ def statistical_challenge(turn_folder):
     pi_star_simple_color = grey.normalize()
     pi_star_proximity_color = brown.normalize()
 
-    fig, ax = plt.subplots(figsize=(8,5.5))
+    fig, ax = plt.subplots(figsize=(9,6))
     fig.tight_layout(pad=2)
     fig.canvas.manager.set_window_title('Sfida')
     bars = ax.bar(teams, scores, color=colors)
     add_scores_to_bars(bars, scores)
     ax.set_title(plot_title, weight='bold')
+    if len(scores)==1: ax.set_xlim(-1,1)
 
     # rotate x-tick labels
     ax.set_xticks(range(len(teams)))
@@ -286,6 +287,7 @@ def statistical_challenge(turn_folder):
             bars = ax.bar(teams, scores, color=colors)
             add_scores_to_bars(bars, scores)
             ax.set_title(plot_title, weight='bold')
+            if len(scores)==1: ax.set_xlim(-1,1)
 
             # rotate x-tick labels
             ax.set_xticks(range(len(teams)))
