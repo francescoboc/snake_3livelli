@@ -6,7 +6,7 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed for the RNG
-seed = 6767
+seed = 7773300
 
 # game parameters
 box_size = 20
@@ -28,7 +28,7 @@ window_size = 900
 cell_size = window_size//box_size
 
 # load a saved policy
-n_episodes = int(1e5)
+n_episodes = int(1e6)
 
 policy = load_policy(periodic, action_mode, state_mode, n_episodes, label='demo')
 
