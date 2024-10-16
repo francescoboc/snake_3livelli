@@ -79,39 +79,6 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     return dict(scores_dict), dict(seeds_dict)
 
 
-def run_one_game(policy, team_name, shared_vars, seeds=None):
-    # unpack shared variables
-    box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
-
-    # count policies to get number of teams
-    n_teams = 1
-
-    # get window size and positions
-    cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
-
-    # shut up
-    verbose = False
-
-    # create a new process for each game
-    color_scheme = 'green'
-    window_position = window_positions[0]
-
-    # if a seeds list was passed, read the corresponding seed
-    if seeds is not None: 
-        seed = seeds[i]
-    else:
-        seed = None
-
-    p = multiprocessing.Process(target=run_snake_game, args=(
-        policy, team_name, window_position, cell_size, shared_vars, color_scheme, 
-        verbose, seed))
-    p.start()
-
-    # wait for all processes to finish
-    p.join()
-
 # run a single snake game (simple non-multiprocessing version)
 def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, color_scheme,
         verbose=False, seed=None):
