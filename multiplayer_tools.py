@@ -251,23 +251,25 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     processes = []
     for i in range(n_teams):
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
-        # the first istance is the human policy, which needs state_mode = 'simple' to work
+        # if the first istance is the human policy, set state_mode = 'simple'
+        # if it's None (hinteracive play), leave state_mode as is
         if i == 0:
             shared_vars_copy = shared_vars.copy()
-            shared_vars_copy[6] = 'simple'
+            if policy != None: shared_vars_copy[6] = 'simple'
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars_copy,
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
                 winner_display_event))
-        # the second istance is the RL policy, and we use the best seed to show it
+        # the second istance is the RL policy, which need action_mode = 3 to work
         else:
+            shared_vars_copy = shared_vars.copy()
+            shared_vars_copy[3] = 3
             if state_mode == 'simple': 
                 color_scheme = 'grey'
-                # TODO put here seed of AI or use the same seed of human policy
             elif state_mode == 'proximity': 
                 color_scheme = 'brown'
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
-                policy, team_name, window_position, cell_size, shared_vars, 
+                policy, team_name, window_position, cell_size, shared_vars_copy, 
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
                 winner_display_event))
         processes.append(p)

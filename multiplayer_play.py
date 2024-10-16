@@ -65,10 +65,9 @@ def human_vs_ai(mode=None, show_state=None):
 
     # pass the same seed to all the games
     seed = random.randrange(sys.maxsize)
-    seeds = [seed for t in range(len(team_names))]
 
     # run the games in parallel
-    scores_dict = run_games_in_parallel(policies, team_names, shared_vars, seeds)
+    scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed)
 
 # demo for one player 
 def one_player(mode=None, show_state=None):
