@@ -94,7 +94,28 @@ def one_player(mode=None, show_state=None):
     # # get window size and positions
     # cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
 
-    scores_dict = run_one_game(policy, team_name, shared_vars)
+    # scores_dict = run_one_game(policy, team_name, shared_vars)
+
+    # get window size and positions
+    cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
+
+    # create a new process for each game
+    window_position = window_positions[0]
+
+    # # if a seeds list was passed, read the corresponding seed
+    # if seeds is not None: 
+    #     seed = seeds[i]
+    # else:
+    #     seed = None
+
+    p = multiprocessing.Process(target=run_snake_game, args=(
+        policy, team_name, window_position, cell_size, shared_vars, color_scheme, 
+        verbose, seed))
+    p.start()
+
+    # wait for all processes to finish
+    p.join()
+
 
     # # run game on a separate process
     # p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
