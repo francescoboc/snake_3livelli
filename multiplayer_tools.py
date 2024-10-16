@@ -79,7 +79,8 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     return dict(scores_dict), dict(seeds_dict)
 
 # run a single snake game (simple non-multiprocessing version)
-def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, verbose=False, seed=None):
+def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, color_scheme,
+        verbose=False, seed=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
         rand_init_direction, state_mode, show_compass, sound_effects, \
@@ -88,7 +89,8 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, v
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position, verbose, countdown_seconds, seed=seed)
+            show_state_info, team_name, window_position, verbose, countdown_seconds,
+            color_scheme, seed)
 
     # play the game with the provided policy
     snake.play(policy)
@@ -152,14 +154,17 @@ def run_games_in_parallel(policies, team_names, shared_vars, seeds=None):
         rand_init_direction, state_mode, show_compass, sound_effects, \
         show_state_info, countdown_seconds = shared_vars 
 
+    # if no seeds are passed, generate a random seed for all the games
+    if seeds is None: seed = None
+
     # count policies to get number of teams
     n_teams = len(policies)
 
     # get window size and positions
     cell_size, window_positions = calculate_size_and_positions(n_teams, box_size)
 
+    # shut up
     verbose = False
-    if seeds is None: seed = None
 
     # create a multiprocessing manager to store scores
     manager = multiprocessing.Manager()
@@ -205,7 +210,7 @@ def run_games_in_parallel(policies, team_names, shared_vars, seeds=None):
     # display winner on a new sindow
     display_winner(winner_score, winner_name)
 
-    # Signal all games to close
+    # signal all games to close
     winner_display_event.set()
 
     # wait for all processes to finish
@@ -294,12 +299,18 @@ def get_screen_resolution(verbose=False):
     display_count = pygame.display.get_num_displays()
     display_sizes = pygame.display.get_desktop_sizes()
     pygame.display.quit()
-    if display_count==1:
-        resolution = display_sizes[0]
-        if verbose: print(f'Primary screen detected with resolution {resolution}')
-    else:
-        resolution = display_sizes[1]
-        if verbose: print(f'Secondary screen detected with resolution {resolution}')
+
+    # # this approach has problems on mac
+    # if display_count==1:
+    #     resolution = display_sizes[0]
+    #     if verbose: print(f'Primary screen detected with resolution {resolution}')
+    # else:
+    #     resolution = display_sizes[1]
+    #     if verbose: print(f'Secondary screen detected with resolution {resolution}')
+
+    # we just always use the primary display and set it as the main display from the os
+    resolution = display_sizes[0]
+
     screen_width, screen_heigth = resolution[0], resolution[1]
 
     return screen_width, screen_heigth
