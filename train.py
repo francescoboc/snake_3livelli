@@ -35,7 +35,7 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
         lose_rew=lose_rew, step_rew=step_rew, trun_rew=trun_rew)
 
 # ql agent parameters
-n_episodes = int(1e5)
+n_episodes = int(1e6)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05

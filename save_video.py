@@ -6,11 +6,11 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed for the RNG
-seed = 7773300
+seed = 893830772696092565
 
 # game parameters
 box_size = 20
-snake_speed = 50
+snake_speed = 500
 periodic = True
 action_mode = 3
 rand_init_body_length = False
@@ -28,9 +28,9 @@ window_size = 900
 cell_size = window_size//box_size
 
 # load a saved policy
-n_episodes = int(1e6)
+n_episodes = int(1e7)
 
-policy = load_policy(periodic, action_mode, state_mode, n_episodes, label='demo')
+policy = load_policy(periodic, action_mode, state_mode, n_episodes, label='zigzag')
 
 team_name = f'AI | {n_episodes} partite'
 window_position = None
@@ -44,9 +44,9 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
         show_state_info, team_name, window_position, verbose, countdown_seconds, 
         color_scheme, seed)
 
-snake.play(policy)
+# snake.play(policy)
 
-# snake.play(policy, save_video=True)
-# video_path = f'demo_{n_episodes}.mp4'
-# snake.save_video(video_path, fps=12)
+snake.play(policy, save_video=True)
+video_path = f'demo_{n_episodes}.mp4'
+snake.save_video(video_path, fps=12)
 
