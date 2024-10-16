@@ -91,14 +91,16 @@ def one_player(mode=None, show_state=None):
     verbose = False
     seed = None
     
-    # get window size and positions
-    cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
+    # # get window size and positions
+    # cell_size, window_position = calculate_size_and_positions(n_teams, box_size)
 
-    # run game on a separate process
-    p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
-        window_position, cell_size, shared_vars, color_scheme, verbose, seed))
-    p.start()
-    p.join()
+    scores_dict = run_one_game(policy, team_name, shared_vars)
+
+    # # run game on a separate process
+    # p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
+    #     window_position, cell_size, shared_vars, color_scheme, verbose, seed))
+    # p.start()
+    # p.join()
 
 # challenge all the policies (in .txt format) inside a folder on one game (with rendering)
 def challenge(turn_folder):
