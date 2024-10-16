@@ -99,9 +99,7 @@ def one_player(mode=None, show_state=None):
     p = multiprocessing.Process(target=run_snake_game, args=(policy, team_name, 
         window_position, cell_size, shared_vars, color_scheme, verbose, seed))
     p.start()
-
     p.join()
-
 
 # challenge all the policies (in .txt format) inside a folder on one game (with rendering)
 def challenge(turn_folder):
