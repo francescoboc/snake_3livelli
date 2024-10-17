@@ -71,7 +71,7 @@ for g in range(1000):
 
     print(f'CURRENT BEST SCORE:{best_score}')
     if mean_score >= best_score:
-        save_policy(pi_star, periodic, box_size, action_mode, state_mode, n_episodes, label=policy_label)
+        save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label=policy_label)
         best_score = mean_score
         print(f'NEW BEST SCORE:{best_score}')
 
