@@ -9,8 +9,8 @@ color_schemes_rgb = [green, blue, red, orange, purple, pink, grey, brown]
 def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, seeds_dict=None, n_games=1000):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # this doesn't really matter because we are not rendering the game window
     cell_size = 10
@@ -20,8 +20,8 @@ def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, s
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
-            rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position=None, verbose=False)
+            rand_init_body_length, rand_init_direction, show_state, show_actions, sound_effects, 
+            team_name, window_position=None, verbose=False)
 
     scores, seeds = [], []
     for n in range(n_games):
@@ -50,8 +50,8 @@ def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, s
 def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # count policies to get number of teams
     n_teams = len(policies)
@@ -82,15 +82,16 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
 # run a single snake game (simple non-multiprocessing version)
 def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, color_scheme,
         verbose=False, seed=None):
+
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
-            rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position, verbose, countdown_seconds,
+            rand_init_body_length, rand_init_direction, show_state, show_actions, sound_effects, 
+            team_name, window_position, verbose, countdown_seconds,
             color_scheme, seed)
 
     # play the game with the provided policy
@@ -99,15 +100,16 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, c
 # run a single snake game (with multiprocessing barrier to wait for the other games to end)
 def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars,
         color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event):
+
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
-            rand_init_body_length, rand_init_direction, show_compass, sound_effects, 
-            show_state_info, team_name, window_position, verbose, countdown_seconds,
+            rand_init_body_length, rand_init_direction, show_state, show_actions, sound_effects, 
+            team_name, window_position, verbose, countdown_seconds,
             color_scheme, seed)
 
     # play until game over
@@ -125,6 +127,7 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
             # check if ESC has been pressed
             escape_pressed = read_esc()
             action = policy[state]
+        snake.action = action
         next_state, reward, terminated, truncated = snake.step(action)
         if terminated or truncated:
             # go in game_over state but without waiting for the user to press ESC
@@ -152,8 +155,8 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
 def run_games_in_parallel(policies, team_names, shared_vars, seeds=None):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # if no seeds are passed, generate a random seed for all the games
     if seeds is None: seed = None
@@ -224,8 +227,8 @@ def run_games_in_parallel(policies, team_names, shared_vars, seeds=None):
 def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_scheme='green'):
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, \
-        show_state_info, countdown_seconds = shared_vars 
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
+        countdown_seconds = shared_vars 
 
     # count policies to get number of teams
     n_teams = 2

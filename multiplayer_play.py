@@ -1,12 +1,12 @@
 from multiplayer_tools import *
 
-def best_policy_vs_ai(turn_folder, team_name, mode=None, show_state=None, seed=None):
+def best_policy_vs_ai(turn_folder, team_name, mode=None, show=None, seed=None):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, sound_effects, countdown_seconds
 
     # overwrite default values
-    show_compass = False
+    show_state = False
     sound_effects = True
 
     # this is important! the policies are all defined with 3 actions
@@ -14,11 +14,11 @@ def best_policy_vs_ai(turn_folder, team_name, mode=None, show_state=None, seed=N
 
     # overwrite default values
     if mode is not None: state_mode = mode
-    if show_state is not None: show_compass = show_state
+    if show is not None: show_state = show
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, sound_effects, countdown_seconds]
 
     # load a saved policy
     n_episodes = int(1e7)
@@ -39,22 +39,22 @@ def best_policy_vs_ai(turn_folder, team_name, mode=None, show_state=None, seed=N
     # run the games in parallel
     scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed, color_scheme)
 
-def human_vs_ai(mode=None, show_state=None):
+def human_vs_ai(mode=None, show=None):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds
 
     # overwrite default values
-    show_compass = False
+    show_state = False
     sound_effects = True
 
     # overwrite default values
     if mode is not None: state_mode = mode
-    if show_state is not None: show_compass = show_state
+    if show is not None: show_state = show
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
 
     # load a saved policy
     n_episodes = int(1e7)
@@ -70,17 +70,17 @@ def human_vs_ai(mode=None, show_state=None):
     scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed)
 
 # demo for one player 
-def one_player(mode=None, show_state=None):
+def one_player(mode=None, show=None):
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds
 
     # overwrite default values
     if mode is not None: state_mode = mode
-    if show_state is not None: show_compass = show_state
+    if show is not None: show_state = show
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
 
     # if policy is None the game is launched in interactive mode
     n_teams, team_name, policy = 1, None, None
@@ -104,15 +104,15 @@ def one_player(mode=None, show_state=None):
 def challenge(turn_folder):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds
 
     # overwrite default values
-    show_compass = True
+    show_state = True
     sound_effects = False
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds]
 
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
@@ -135,15 +135,15 @@ def challenge(turn_folder):
 def challenge_best_seeds(turn_folder):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds
 
     # overwrite default values
-    show_compass = True
+    show_state = True
     sound_effects = False
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
 
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
@@ -168,14 +168,14 @@ def challenge_best_seeds(turn_folder):
 def statistical_challenge(turn_folder):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds
 
     # overwrite default values
     sound_effects = False
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_compass, sound_effects, show_state_info, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds]
 
     # number of test games
     n_games = 1000
@@ -346,11 +346,9 @@ if __name__ == "__main__":
             state_mode = 'simple'
             if len(sys.argv) == 3: 
                 if sys.argv[2] == 'show':
-                    show_state = True
-                    one_player(state_mode, show_state)
+                    one_player(state_mode, show=True)
                 elif sys.argv[2] == 'no_show':
-                    show_state = False
-                    one_player(state_mode, show_state)
+                    one_player(state_mode, show=False)
                 else:
                     raise Warning("Please specify show_state FLAG ('show' or 'no_show')")
             # if no show_state flag is passed, run game with default values
@@ -383,7 +381,6 @@ if __name__ == "__main__":
 
         # 'human_vs_ai' mode requires flag to choose state mode
         elif game_mode == 'human_vs_ai':
-            show_state = True
             if len(sys.argv) == 3: 
                 if sys.argv[2] == 'simple':
                     state_mode = 'simple'
@@ -391,7 +388,7 @@ if __name__ == "__main__":
                     state_mode = 'proximity'
                 else:
                     raise Warning("Please specify a STATE MODE ('simple' or 'proximity')")
-                human_vs_ai(state_mode, show_state)
+                human_vs_ai(state_mode, show=True)
             # if no state_mode flag is passed, run game with default values
             else:
                 human_vs_ai()

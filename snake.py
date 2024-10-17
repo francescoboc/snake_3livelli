@@ -11,9 +11,9 @@ class Snake:
             periodic=True, 
             rand_init_body_length=False,
             rand_init_direction=False,
-            show_compass=True,
+            show_state=True,
+            show_actions=False,
             sound_effects=False,
-            show_state_info=False,
             team_name=None,
             window_position=None,
             verbose=True,
@@ -56,10 +56,10 @@ class Snake:
         # the state_mode flag needs to be seen by some methods
         self.state_mode = state_mode
 
-        # flags for sounds and state info
-        self.show_compass = show_compass
+        # flags for sounds and state/action info
+        self.show_state = show_state
+        self.show_actions = show_actions
         self.sound_effects = sound_effects
-        self.show_state_info = show_state_info
 
         # other variables (mainly for multiplayer mode)
         self.team_name = team_name
@@ -76,50 +76,6 @@ class Snake:
         if seed is None: self.seed = random.randrange(sys.maxsize)
         else: self.seed = seed
         self.rng.seed(self.seed)
-
-        # load compass images
-        if self.show_compass:
-            self.compass_images = {
-                'N': pygame.image.load('img/north.png'),
-                'NE': pygame.image.load('img/north_east.png'),
-                'E': pygame.image.load('img/east.png'),
-                'SE': pygame.image.load('img/south_east.png'),
-                'S': pygame.image.load('img/south.png'),
-                'SW': pygame.image.load('img/south_west.png'),
-                'W': pygame.image.load('img/west.png'),
-                'NW': pygame.image.load('img/north_west.png')
-            }
-
-            # resize images
-            for key in self.compass_images:
-                self.compass_images[key] = pygame.transform.smoothscale(self.compass_images[key], (self.cell_size*4 , self.cell_size*4))
-
-            # load proximity images
-            if self.state_mode == 'proximity':
-                self.proximity_images = {
-                    'f': pygame.image.load('img/prox_f.png'),
-                    'l': pygame.image.load('img/prox_l.png'),
-                    'r': pygame.image.load('img/prox_r.png'),
-                    'fl': pygame.image.load('img/prox_fl.png'),
-                    'fr': pygame.image.load('img/prox_fr.png'),
-                    'lr': pygame.image.load('img/prox_lr.png'),
-                    'flr': pygame.image.load('img/prox_flr.png'),
-                }
-
-                # resize images
-                for key in self.proximity_images:
-                    self.proximity_images[key] = pygame.transform.smoothscale(self.proximity_images[key], (self.cell_size*1.7 , self.cell_size*1.7))
-
-                # rotation angles depending on head directions
-                self.rotation_angles = {
-                    'UP': 0,
-                    'RIGHT': -90,
-                    'DOWN': -180,
-                    'LEFT': -270,
-                    }
-
-        # # reset the environment
-        # self.reset()
 
         # show info in terminal
         if verbose:
@@ -207,6 +163,7 @@ class Snake:
 
         # reset snake direction towards RIGHT
         self.direction = direction
+        self.action = 'NO_TURN'
 
         # sparn food in a random position
         self.spawn_food()
@@ -477,6 +434,9 @@ class Snake:
                     escape_pressed = read_esc()
                 action = policy[state]
 
+            # also set a global variable to be used in render function
+            self.action = action
+
             # update snake position
             next_state, reward, terminated, truncated = self.step(action)
 
@@ -608,9 +568,10 @@ class Snake:
         # color of the head
         self.head_color = self.start_color
 
+
         # values to position text on screen
-        self.vert_shift = self.main_font.get_height() + 5
-        self.hor_shift = 10
+        self.vert_shift = self.cell_size/6
+        self.hor_shift = self.cell_size/3
 
         # initialize audio mixer
         pygame.mixer.init()
@@ -629,6 +590,88 @@ class Snake:
 
         # resize the image to match the cell size
         self.food_image = pygame.transform.scale(self.food_image, (self.cell_size, self.cell_size))
+
+        # load compass images
+        if self.show_state:
+            self.compass_images = {
+                'N': pygame.image.load('img/north.png'),
+                'NE': pygame.image.load('img/north_east.png'),
+                'E': pygame.image.load('img/east.png'),
+                'SE': pygame.image.load('img/south_east.png'),
+                'S': pygame.image.load('img/south.png'),
+                'SW': pygame.image.load('img/south_west.png'),
+                'W': pygame.image.load('img/west.png'),
+                'NW': pygame.image.load('img/north_west.png')
+            }
+
+            # resize images
+            for key in self.compass_images:
+                self.compass_images[key] = pygame.transform.smoothscale(self.compass_images[key], (self.cell_size*4 , self.cell_size*4))
+
+            # load proximity images
+            if self.state_mode == 'proximity':
+                self.proximity_images = {
+                    'f': pygame.image.load('img/prox_f.png'),
+                    'l': pygame.image.load('img/prox_l.png'),
+                    'r': pygame.image.load('img/prox_r.png'),
+                    'fl': pygame.image.load('img/prox_fl.png'),
+                    'fr': pygame.image.load('img/prox_fr.png'),
+                    'lr': pygame.image.load('img/prox_lr.png'),
+                    'flr': pygame.image.load('img/prox_flr.png'),
+                }
+
+                # resize images
+                for key in self.proximity_images:
+                    self.proximity_images[key] = pygame.transform.smoothscale(self.proximity_images[key], (self.cell_size*1.7 , self.cell_size*1.7))
+
+                # rotation angles depending on head directions
+                self.rotation_angles = {
+                    'UP': 0,
+                    'RIGHT': -90,
+                    'DOWN': -180,
+                    'LEFT': -270,
+                    }
+
+        # load action images
+        self.left_turn_img = pygame.image.load('img/relative_turns/left.png').convert_alpha()
+        self.no_turn_img = pygame.image.load('img/relative_turns/no_turn_x.png').convert_alpha()
+        self.right_turn_img = pygame.image.load('img/relative_turns/right.png').convert_alpha()
+
+        # resize them 
+        resize_factor = self.cell_size*1.5
+        self.left_turn_img = pygame.transform.smoothscale(self.left_turn_img, (resize_factor, resize_factor))
+        self.no_turn_img = pygame.transform.smoothscale(self.no_turn_img, (resize_factor*0.9, resize_factor*0.9))
+        self.right_turn_img = pygame.transform.smoothscale(self.right_turn_img, (resize_factor, resize_factor))
+
+        self.left_circle_img = pygame.image.load('img/relative_turns/left_circle.png').convert_alpha()
+        self.no_turn_circle_img = pygame.image.load('img/relative_turns/no_turn_circle.png').convert_alpha()
+        self.right_circle_img = pygame.image.load('img/relative_turns/right_circle.png').convert_alpha()
+
+        resize_factor = self.cell_size*2.0
+        self.left_circle_img = pygame.transform.smoothscale(self.left_circle_img, (resize_factor, resize_factor))
+        self.no_turn_circle_img = pygame.transform.smoothscale(self.no_turn_circle_img, (resize_factor, resize_factor))
+        self.right_circle_img = pygame.transform.smoothscale(self.right_circle_img, (resize_factor, resize_factor))
+
+        # alpha values
+        self.non_active_alpha = 50
+        self.active_alpha = 125 
+
+        # define separation between images
+        self.separator = self.cell_size  
+
+        # calculate the total width of the three images plus separators
+        total_width = (self.left_turn_img.get_width() +
+                       self.no_turn_img.get_width() +
+                       self.right_turn_img.get_width() +
+                       2 * self.separator)
+
+        # set positions for each image
+        self.left_x = (self.box_length - total_width) // 2
+        self.center_x = self.left_x + self.left_turn_img.get_width() + self.separator
+        self.right_x = self.center_x + self.no_turn_img.get_width() + self.separator
+
+        # calculate the Y-position for all images
+        self.y_position = self.box_length - self.cell_size//2 - self.left_turn_img.get_height()
 
     def get_eye_positions(self):
         # dictionary to map directions to eye positions
@@ -704,7 +747,7 @@ class Snake:
         # self.score_surface.set_alpha(int(0.75 * 255))
 
         # display text
-        self.game_window.blit(self.score_surface, (self.hor_shift, 0))
+        self.game_window.blit(self.score_surface, (self.hor_shift, self.vert_shift))
 
     # display team name onscreen
     def display_team_name(self):
@@ -720,35 +763,51 @@ class Snake:
 
     # display info about state onscreen
     def display_state_info(self, color, head_rect):
-        if self.show_compass:
-            # add image corresponding to proximity state
-            if self.state_mode=='proximity':
-                if self.proximity != '':
-                    # get the correct proximity image
-                    proximity_image = self.proximity_images.get(self.proximity) 
-                    # rotate it accordingly
-                    proximity_image = pygame.transform.rotate(proximity_image, self.rotation_angles[self.direction])
-                    # place it on the head of the snake
-                    proximity_rect = proximity_image.get_rect(center=head_rect.center)
-                    self.game_window.blit(proximity_image, proximity_rect)
-                    # play sound
-                    if self.sound_effects:
-                        self.sound_proximity.play()
+        # add image corresponding to proximity state
+        if self.state_mode=='proximity':
+            if self.proximity != '':
+                # get the correct proximity image
+                proximity_image = self.proximity_images.get(self.proximity) 
+                # rotate it accordingly
+                proximity_image = pygame.transform.rotate(proximity_image, self.rotation_angles[self.direction])
+                # place it on the head of the snake
+                proximity_rect = proximity_image.get_rect(center=head_rect.center)
+                self.game_window.blit(proximity_image, proximity_rect)
+                # play sound
+                if self.sound_effects:
+                    self.sound_proximity.play()
 
-            # same thing for the food compass
-            compass_image = self.compass_images.get(self.compass) 
-            compass_rect = compass_image.get_rect(center=head_rect.center)
-            self.game_window.blit(compass_image, compass_rect)
+        # same thing for the food compass
+        compass_image = self.compass_images.get(self.compass) 
+        compass_rect = compass_image.get_rect(center=head_rect.center)
+        self.game_window.blit(compass_image, compass_rect)
 
-        # simpler text version
-        if self.show_state_info:
-            self.compass_surface = self.main_font.render(f'Bussola: {self.compass}', True, color)
-            self.compass_rect = self.score_surface.get_rect()
-            self.game_window.blit(self.compass_surface, (self.hor_shift, self.box_length-self.vert_shift))
-            if self.state_mode=='proximity':
-                self.body_info_surface = self.main_font.render(f'Prossimità: {self.proximity}', True, color)
-                self.body_info_rect = self.body_info_surface.get_rect()
-                self.game_window.blit(self.body_info_surface, (self.hor_shift, self.box_length-self.vert_shift*1.8))
+    # helper function to set image transparency and blit the circle image for the active action
+    def draw_image_with_circle(self, img_surface, x_pos, circle_img, is_active):
+        # only draw the circle for the active action
+        if is_active:
+            # blit the circle image centered behind the action icon
+            circle_x = x_pos + (img_surface.get_width() - circle_img.get_width()) // 2
+            circle_y = self.y_position + (img_surface.get_height() - circle_img.get_height()) // 2
+
+            # set active alpha
+            circle_img.set_alpha(self.active_alpha)
+            img_surface.set_alpha(self.active_alpha)
+
+            self.game_window.blit(circle_img, (circle_x, circle_y))
+        else:
+            # set non-active alpha for idle action images
+            img_surface.set_alpha(self.non_active_alpha)
+
+        # blit the image
+        self.game_window.blit(img_surface, (x_pos, self.y_position))
+
+    # function to display the action image
+    def display_action(self):
+        # draw each action
+        self.draw_image_with_circle(self.left_turn_img, self.left_x, self.left_circle_img, self.action == 'LEFT')
+        self.draw_image_with_circle(self.no_turn_img, self.center_x, self.no_turn_circle_img, self.action == 'NO_TURN')
+        self.draw_image_with_circle(self.right_turn_img, self.right_x, self.right_circle_img, self.action == 'RIGHT')
 
     # render the current frame
     def render_frame(self):
@@ -782,9 +841,14 @@ class Snake:
         food_position = (self.food_position[0], self.food_position[1])
         self.game_window.blit(self.food_image, food_position)
         
-        # display score and state info
+        # display stuff on screen
         self.display_score(white)
-        self.display_state_info(green, head_rect)
+
+        if self.show_state:
+            self.display_state_info(green, head_rect)
+
+        if self.show_actions:
+            self.display_action()
 
         # display team name
         if self.team_name != None:
