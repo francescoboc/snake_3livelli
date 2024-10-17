@@ -1,7 +1,4 @@
-import random
 from tools import *
-
-rng = random.Random()
 
 class QLearningAgent:
     def __init__(self, 
@@ -33,7 +30,7 @@ class QLearningAgent:
     def q_norm(self, q1, q2):
         return (sum(np.sum((q1[key]-q2[key])**2 for key in q1)))
 
-    def train(self):
+    def train(self, use_tqdm=True):
         # initialise exploration rate
         epsilon = self.epsilon_i
 
@@ -41,7 +38,9 @@ class QLearningAgent:
         reduction = (self.epsilon_i - self.epsilon_f)/self.n_episodes
 
         # loop on episodes
-        for epi in tqdm(range(self.n_episodes), ascii=' █'):
+        if use_tqdm: iterator = tqdm(range(self.n_episodes), ascii=' █')
+        else: iterator = range(self.n_episodes)
+        for epi in iterator:
             # reset timestep counter
             step = 0
 
