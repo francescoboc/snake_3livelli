@@ -1,10 +1,10 @@
 # snake parameters
-box_size = 16
-snake_speed = 11
+box_size = 18
+snake_speed = 10
 
 # game parameters
 periodic = True
-action_mode = 4
+action_mode = 3
 rand_init_body_length = False
 rand_init_direction = False
 

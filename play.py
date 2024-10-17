@@ -6,13 +6,13 @@ reload(sys.modules['snake'])
 from snake import *
 
 # seed for the RNG
-seed = 421
+seed = 3710131613367855960
 
 # game parameters
-box_size = 16
-snake_speed = 11
+box_size = 18
+snake_speed = 10
 periodic = True
-action_mode = 4
+action_mode = 3
 rand_init_body_length = True
 rand_init_direction = False
 
@@ -21,7 +21,7 @@ rand_init_direction = False
 state_mode = 'proximity'
 
 # visual and sound effects
-show_compass = True
+show_compass = False
 sound_effects = True
 show_state_info = False
 window_size = 900
@@ -45,7 +45,7 @@ policy = None
 
 # # load a saved policy
 # n_episodes = int(1e7)
-# label = 'zigzag'
+# label = '30_105'
 # # label = None
 # policy = load_policy(periodic, action_mode, state_mode, n_episodes, label=label)
 

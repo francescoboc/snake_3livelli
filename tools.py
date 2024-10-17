@@ -54,7 +54,7 @@ prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 
 # initial direction and size of the snake
 init_direction = 'RIGHT' 
-init_size = 5
+init_size = 6
 
 # read keys pressed by the user
 def read_keys():
@@ -139,7 +139,7 @@ def test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_leng
     from snake import Snake
     # these are not important because we are not rendering the game window
     cell_size = 30
-    snake_speed = 100
+    snake_speed = 50
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, rand_init_body_length, rand_init_direction, verbose=False)

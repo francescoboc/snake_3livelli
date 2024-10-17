@@ -270,8 +270,9 @@ def statistical_challenge(turn_folder):
     #         rand_init_body_length, rand_init_direction, n_games, policy, verbose=False, use_tqdm=False)
 
     # no need to re-evaluate the learned policies everytime!
-    pi_star_simple_score = 46.11
-    pi_star_proximity_score = 56.08
+    # NB these are for box_size = 18, if that changes, they need to be re-evaluated!
+    pi_star_simple_score = 39.082
+    pi_star_proximity_score = 63.793
 
     # prepare pi_star_bars dictionary with all info for the new score bars
     pi_star_bars = {
