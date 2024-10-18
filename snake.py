@@ -409,6 +409,7 @@ class Snake:
             truncated = True
 
         self.old_score = self.score
+
         return truncated
 
     # play with a given policy or interactively
@@ -424,15 +425,15 @@ class Snake:
         # game loop
         escape_pressed = False
         while not escape_pressed:
+            # policy=None is interactive mode: check for user keypresses 
             if policy is None:
-                # check if an action key has been pressed
-                if render: 
-                    action, escape_pressed = read_keys()
+                if render: action, escape_pressed = read_keys()
+                else: raise Warning('Set render=True to play interactively!')
+            # policy!=None is non-interactive: use actions provided by policy
             else:
-                # check if ESC has been pressed
-                if render:
-                    escape_pressed = read_esc()
                 action = policy[state]
+                # if rendering the game, check if ESC key is pressed to stop
+                if render: escape_pressed = read_esc()
 
             # also set a global variable to be used in render function
             self.action = action
@@ -455,6 +456,7 @@ class Snake:
 
             # shift state
             state = next_state
+
         return self.score, truncated
 
     ############################## RENDERING METHODS ##############################
@@ -568,7 +570,6 @@ class Snake:
         # color of the head
         self.head_color = self.start_color
 
-
         # values to position text on screen
         self.vert_shift = self.cell_size/6
         self.hor_shift = self.cell_size/3
@@ -637,22 +638,22 @@ class Snake:
         self.no_turn_img = pygame.image.load('img/relative_turns/no_turn_x.png').convert_alpha()
         self.right_turn_img = pygame.image.load('img/relative_turns/right.png').convert_alpha()
 
+        self.left_circle_img = pygame.image.load('img/relative_turns/left_circle.png').convert_alpha()
+        self.no_turn_circle_img = pygame.image.load('img/relative_turns/no_turn_circle.png').convert_alpha()
+        self.right_circle_img = pygame.image.load('img/relative_turns/right_circle.png').convert_alpha()
+
         # resize them 
         resize_factor = self.cell_size*1.5
         self.left_turn_img = pygame.transform.smoothscale(self.left_turn_img, (resize_factor, resize_factor))
         self.no_turn_img = pygame.transform.smoothscale(self.no_turn_img, (resize_factor*0.9, resize_factor*0.9))
         self.right_turn_img = pygame.transform.smoothscale(self.right_turn_img, (resize_factor, resize_factor))
 
-        self.left_circle_img = pygame.image.load('img/relative_turns/left_circle.png').convert_alpha()
-        self.no_turn_circle_img = pygame.image.load('img/relative_turns/no_turn_circle.png').convert_alpha()
-        self.right_circle_img = pygame.image.load('img/relative_turns/right_circle.png').convert_alpha()
-
         resize_factor = self.cell_size*2.0
         self.left_circle_img = pygame.transform.smoothscale(self.left_circle_img, (resize_factor, resize_factor))
         self.no_turn_circle_img = pygame.transform.smoothscale(self.no_turn_circle_img, (resize_factor, resize_factor))
         self.right_circle_img = pygame.transform.smoothscale(self.right_circle_img, (resize_factor, resize_factor))
 
-        # alpha values
+        # transparency values for action images
         self.non_active_alpha = 50
         self.active_alpha = 125 
 
@@ -660,17 +661,15 @@ class Snake:
         self.separator = self.cell_size  
 
         # calculate the total width of the three images plus separators
-        total_width = (self.left_turn_img.get_width() +
-                       self.no_turn_img.get_width() +
-                       self.right_turn_img.get_width() +
-                       2 * self.separator)
+        total_width = (self.left_turn_img.get_width() + self.no_turn_img.get_width() + 
+                self.right_turn_img.get_width() + 2 * self.separator)
 
-        # set positions for each image
+        # set x-positions for each image
         self.left_x = (self.box_length - total_width) // 2
         self.center_x = self.left_x + self.left_turn_img.get_width() + self.separator
         self.right_x = self.center_x + self.no_turn_img.get_width() + self.separator
 
-        # calculate the Y-position for all images
+        # calculate the y-position for all images
         self.y_position = self.box_length - self.cell_size//2 - self.left_turn_img.get_height()
 
     def get_eye_positions(self):
@@ -794,6 +793,7 @@ class Snake:
             circle_img.set_alpha(self.active_alpha)
             img_surface.set_alpha(self.active_alpha)
 
+            # blit the image
             self.game_window.blit(circle_img, (circle_x, circle_y))
         else:
             # set non-active alpha for idle action images
@@ -835,9 +835,11 @@ class Snake:
             pygame.draw.rect(self.game_window, color, body_rect)
 
         # # draw food
+        # # simple version with a square
         # food_rect = pygame.Rect(self.food_position[0], self.food_position[1], self.cell_size, self.cell_size), 
         # pygame.draw.rect(self.game_window, brightRed, food_rect, border_radius=self.food_radius)
 
+        # nicer version with an external image
         food_position = (self.food_position[0], self.food_position[1])
         self.game_window.blit(self.food_image, food_position)
         
@@ -854,9 +856,10 @@ class Snake:
         if self.team_name != None:
             self.display_team_name()
 
-        # draw window border (if PBC is not activated)
-        # if not self.periodic:
-        pygame.draw.rect(self.game_window, white, self.game_window.get_rect(), 1)
+        # draw window border
+        if self.periodic: border_color, border_px = white, 1
+        else: border_color, border_px = red, 3
+        pygame.draw.rect(self.game_window, border_color, self.game_window.get_rect(), border_px)
 
         # FPS/refresh Rate (increase speed with score)
         self.fps.tick(self.snake_speed + self.score/8)

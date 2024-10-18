@@ -1,6 +1,7 @@
 import sys, signal, os, time
 from tqdm import tqdm
 import numpy as np
+from collections import deque
 
 # hide pygame welcome message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -56,57 +57,75 @@ prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 init_direction = 'RIGHT' 
 init_size = 6
 
-# read keys pressed by the user
+# initialize a global deque to store key presses
+key_queue = deque(maxlen=3)
+
+# check for user keypresses and get the next action from to the queue
 def read_keys():
     escape_pressed = False
-    action = 'NO_TURN'
+
+    # process events and queue key presses
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                action = 'UP'
-            if event.key == pygame.K_DOWN:
-                action = 'DOWN'
-            if event.key == pygame.K_LEFT:
-                action = 'LEFT'
-            if event.key == pygame.K_RIGHT:
-                action = 'RIGHT'
-            if  event.key == pygame.K_ESCAPE:
+                key_queue.append('UP')
+            elif event.key == pygame.K_DOWN:
+                key_queue.append('DOWN')
+            elif event.key == pygame.K_LEFT:
+                key_queue.append('LEFT')
+            elif event.key == pygame.K_RIGHT:
+                key_queue.append('RIGHT')
+            elif event.key == pygame.K_ESCAPE:
                 escape_pressed = True
+
+    # get the next action from the queue, or return 'NO_TURN' if empty
+    if key_queue: action = key_queue.popleft()
+    else: action = 'NO_TURN'
+
     return action, escape_pressed
 
 # simpler version that only checks for escape keypress
 def read_esc():
     escape_pressed = False
+
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if  event.key == pygame.K_ESCAPE:
                 escape_pressed = True
+
     return escape_pressed
 
 # load a saved policy
 def load_policy(periodic, action_mode, state_mode, n_episodes, verbose=True, label=None):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
+
+    # add a label if provided
     if label is not None:
         policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}_{label}'
     else:
         policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
+
     try: 
         policy = np.load(f'{policy_folder}/{policy_name}.npy', allow_pickle=True).item()
         if verbose:
             print(f'Policy {policy_name} loaded!')
     except:
         raise Exception(f'Policy {policy_name} not found!')
+
     return policy
 
 # save a policy
 def save_policy(policy, periodic, action_mode, state_mode, n_episodes, label=None):
     if periodic: policy_folder = f'policies/periodic'
     else: policy_folder = f'policies/non_periodic'
+
+    # add a label if provided
     if label is not None:
         policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}_{label}'
     else:
         policy_name = f'pi_{action_mode}_{state_mode}_{n_episodes:.0e}'
+
     np.save(f'{policy_folder}/{policy_name}.npy', policy)
     print(f'Policy {policy_name} saved!')
 
@@ -114,6 +133,7 @@ def save_policy(policy, periodic, action_mode, state_mode, n_episodes, label=Non
 def load_user_policy(filename, folder, verbose=False):
     path = f'{folder}/{filename}'
     text_array = np.loadtxt(path, dtype='str')
+
     policy_dict = {}
     for row in text_array:
         state, action = row
@@ -124,10 +144,12 @@ def load_user_policy(filename, folder, verbose=False):
             policy_dict[key] = action
         else:
             raise Exception(f'State {state} not recognized!')
+
     if verbose:
         print(f'Policy {path} loaded!')
     # add terminal state
     policy_dict['Term'] = None
+
     return policy_dict
 
 # change position of window

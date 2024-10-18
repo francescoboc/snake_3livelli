@@ -121,12 +121,10 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
     escape_pressed = False
     while not escape_pressed:
         if policy is None:
-            # check if an action key has been pressed
             action, escape_pressed = read_keys()
         else:
-            # check if ESC has been pressed
-            escape_pressed = read_esc()
             action = policy[state]
+            escape_pressed = read_esc()
         snake.action = action
         next_state, reward, terminated, truncated = snake.step(action)
         if terminated or truncated:
