@@ -458,6 +458,7 @@ def display_winner(score, team_name):
     # Retro blinking effect
     blink = True
     last_time = time.time()
+    start_time = time.time()
 
     # Blinking effect
     while True:
@@ -466,15 +467,17 @@ def display_winner(score, team_name):
             blink = not blink
 
         if blink:
-            # screen.blit(image, image_rect)
             screen.blit(winner_surface, winner_rect)
             screen.blit(score_surface, score_rect)
         else:
-            # screen.fill(bg_color, image_rect)
             screen.fill(bg_color, winner_rect)
             screen.fill(bg_color, score_rect)
 
         pygame.display.flip()
+
+        # close automatically after a fixed number of seconds
+        if time.time() - start_time > 10:
+            return
 
         # Wait for exit event
         for event in pygame.event.get():

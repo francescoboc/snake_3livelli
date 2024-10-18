@@ -18,8 +18,8 @@ class Snake:
             window_position=None,
             verbose=True,
             countdown_seconds=3,
-            color_scheme = 'green',
-            seed = None,
+            color_scheme='green',
+            seed=None,
             food_rew=1.0, 
             lose_rew=-10.0, 
             step_rew=0.0,
@@ -643,22 +643,22 @@ class Snake:
         self.right_circle_img = pygame.image.load('img/relative_turns/right_circle.png').convert_alpha()
 
         # resize them 
-        resize_factor = self.cell_size*1.5
+        resize_factor = self.cell_size*1.25
         self.left_turn_img = pygame.transform.smoothscale(self.left_turn_img, (resize_factor, resize_factor))
         self.no_turn_img = pygame.transform.smoothscale(self.no_turn_img, (resize_factor*0.9, resize_factor*0.9))
         self.right_turn_img = pygame.transform.smoothscale(self.right_turn_img, (resize_factor, resize_factor))
 
-        resize_factor = self.cell_size*2.0
+        resize_factor *= 1.2
         self.left_circle_img = pygame.transform.smoothscale(self.left_circle_img, (resize_factor, resize_factor))
         self.no_turn_circle_img = pygame.transform.smoothscale(self.no_turn_circle_img, (resize_factor, resize_factor))
         self.right_circle_img = pygame.transform.smoothscale(self.right_circle_img, (resize_factor, resize_factor))
 
         # transparency values for action images
         self.non_active_alpha = 50
-        self.active_alpha = 125 
+        self.active_alpha = 110 
 
         # define separation between images
-        self.separator = self.cell_size  
+        self.separator = self.cell_size*0.7
 
         # calculate the total width of the three images plus separators
         total_width = (self.left_turn_img.get_width() + self.no_turn_img.get_width() + 
@@ -724,9 +724,14 @@ class Snake:
         # refresh game screen
         pygame.display.flip()
 
+        start_time = time.time()
+
         # wait for user input to return
         if wait_for_user:
             while True:
+                # close automatically after a fixed number of seconds
+                if time.time() - start_time > 10:
+                    return
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN 
                             and event.key == pygame.K_ESCAPE):

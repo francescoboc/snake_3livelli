@@ -3,7 +3,7 @@ from multiplayer_tools import *
 def best_policy_vs_ai(turn_folder, team_name, mode=None, show=None, seed=None):
     # import default variables
     from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
-        rand_init_direction, state_mode, show_state, sound_effects, countdown_seconds
+        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds
 
     # overwrite default values
     show_state = False
@@ -18,7 +18,8 @@ def best_policy_vs_ai(turn_folder, team_name, mode=None, show=None, seed=None):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # load a saved policy
     n_episodes = int(1e7)
@@ -54,7 +55,8 @@ def human_vs_ai(mode=None, show=None):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # load a saved policy
     n_episodes = int(1e7)
@@ -80,7 +82,8 @@ def one_player(mode=None, show=None):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # if policy is None the game is launched in interactive mode
     n_teams, team_name, policy = 1, None, None
@@ -112,7 +115,8 @@ def challenge(turn_folder):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
@@ -143,7 +147,8 @@ def challenge_best_seeds(turn_folder):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # all the policies are inside a subfolder 'strategie'
     policies_folder = f'{turn_folder}/strategie'
@@ -175,7 +180,8 @@ def statistical_challenge(turn_folder):
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-        rand_init_direction, state_mode, show_state, show_actions,  sound_effects, countdown_seconds]
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
     # number of test games
     n_games = 1000
