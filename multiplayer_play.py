@@ -33,7 +33,7 @@ def best_policy_vs_ai(turn_folder, team_name, mode=None, show=None, seed=None):
     if state_mode == 'simple':
         policies, team_names = [pi_user, pi_star], [team_name, 'AI']
     if state_mode == 'proximity':
-    policies, team_names = [pi_user, pi_star], [team_name, 'AI+']
+        policies, team_names = [pi_user, pi_star], [team_name, 'AI+']
 
     # map team_name to corresponding color by loading the list of teams
     policy_folder, team_names_folder = load_policies_from_folder(policy_folder)
