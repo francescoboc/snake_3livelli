@@ -66,7 +66,10 @@ def human_vs_ai(mode=None, show=None):
     action_mode = 3
     pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
-    policies, team_names = [None, pi_star], ['Umano', 'AI']
+    if state_mode == 'simple':
+        policies, team_names = [None, pi_star], ['Umano', 'AI']
+    if state_mode == 'proximity':
+        policies, team_names = [None, pi_star], ['Umano', 'AI+']
 
     # pass the same seed to all the games
     seed = random.randrange(sys.maxsize)
