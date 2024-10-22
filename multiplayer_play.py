@@ -30,7 +30,10 @@ def best_policy_vs_ai(turn_folder, team_name, mode=None, show=None, seed=None):
     policy_name = team_name + '.txt'
     pi_user = load_user_policy(policy_name, policy_folder, verbose=False)
 
-    policies, team_names = [pi_user, pi_star], [team_name, 'AI']
+    if state_mode = 'simple':
+        policies, team_names = [pi_user, pi_star], [team_name, 'AI']
+    if state_mode = 'proximity':
+    policies, team_names = [pi_user, pi_star], [team_name, 'AI+']
 
     # map team_name to corresponding color by loading the list of teams
     policy_folder, team_names_folder = load_policies_from_folder(policy_folder)
@@ -111,7 +114,7 @@ def challenge(turn_folder):
 
     # overwrite default values
     show_state = True
-    sound_effects = False
+    sound_effects = True
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
@@ -143,7 +146,7 @@ def challenge_best_seeds(turn_folder):
 
     # overwrite default values
     show_state = True
-    sound_effects = False
+    sound_effects = True
 
     # put all shared variables into a list for convenience
     shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
