@@ -5,6 +5,10 @@ import multiprocessing
 color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'grey', 'brown']
 color_schemes_rgb = [green, blue, red, orange, purple, pink, grey, brown]
 
+
+
+
+
 # test a single policy (to be used in multiprocessing loop)
 def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, seeds_dict=None, n_games=1000):
     # unpack shared variables
@@ -489,10 +493,13 @@ def display_winner(score, team_name):
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.display.quit()
                 return
-
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
 def load_policies_from_folder(policies_folder):
     policies, team_names = [], []
-    files_list = sorted(os.listdir(policies_folder))
+    files_list = sorted(listdir_nohidden(policies_folder))
     for filename in files_list:
         policies.append(load_user_policy(filename, policies_folder))
         team_names.append(filename.replace('.txt',''))
@@ -508,3 +515,7 @@ def load_ranking(turn_folder):
         scores[team_name] = float(line[0])
         seeds[team_name] = int(line[2])
     return scores, seeds
+
+
+
+
