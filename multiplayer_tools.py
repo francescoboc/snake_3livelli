@@ -283,7 +283,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     # in this way the interactive game (first) is started last, and the window is focuesd
     for p in reversed(processes):
         p.start()
-        time.sleep(0.05)
+        time.sleep(0.5)
 
     # wait for all games to reach the game_over state (main process waits here too)
     game_over_barrier.wait()
