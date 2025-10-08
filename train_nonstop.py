@@ -1,7 +1,7 @@
 from snake import *
 from qlearning import *
 
-# in case we need to reload the library
+# in case we need to reload libraries
 from importlib import reload
 reload(sys.modules['snake'])
 reload(sys.modules['qlearning'])

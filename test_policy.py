@@ -1,7 +1,7 @@
 from tools import *
 
 # game parameters
-box_size = 18
+box_size = 20
 periodic = True
 action_mode = 3
 rand_init_body_length = False
@@ -11,11 +11,11 @@ rand_init_direction = False
 # state_mode = 'simple'
 state_mode = 'proximity'
 
-# number of teset games
+# number of test games
 n_games = 1000
 
 # load a saved policy
-n_episodes = int(1e7)
+n_episodes = int(1e6)
 label = None
 policy = load_policy(periodic, action_mode, state_mode, n_episodes, label=label)
 

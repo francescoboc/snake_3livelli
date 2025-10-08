@@ -296,7 +296,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     # display winner on a new sindow
     display_winner(winner_score, winner_name)
 
-    # Signal all games to close
+    # signal all games to close
     winner_display_event.set()
 
     # wait for all processes to finish

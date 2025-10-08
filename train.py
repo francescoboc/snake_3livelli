@@ -1,7 +1,7 @@
 from snake import *
 from qlearning import *
 
-# in case we need to reload the library
+# in case we need to reload libraries
 from importlib import reload
 reload(sys.modules['snake'])
 reload(sys.modules['qlearning'])
@@ -16,8 +16,8 @@ rand_init_body_length = True
 rand_init_direction = True
 
 # state mode
-state_mode = 'simple'
-# state_mode = 'proximity'
+# state_mode = 'simple'
+state_mode = 'proximity'
 
 # rewards
 food_rew = 1.0
@@ -35,7 +35,7 @@ snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodi
         lose_rew=lose_rew, step_rew=step_rew, trun_rew=trun_rew)
 
 # ql agent parameters
-n_episodes = int(1e6)
+n_episodes = int(1e5)
 epsilon_i = 1.0
 epsilon_f = 0.1
 learning_rate = 0.05
@@ -55,11 +55,10 @@ mean_score, trun_ratio = test_policy(action_mode, state_mode, box_size, periodic
 while True:
     user_input = input("\nSave learned policy? (yes/no): ")
     if user_input.lower() in ["yes", "y"]:
-        save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label='demo')
+        save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label=None)
         break
     elif user_input.lower() in ["no", "n"]:
         print("Exiting...")
         break
     else:
         print("Invalid input. Please enter yes/no.")
-
