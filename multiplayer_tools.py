@@ -5,10 +5,6 @@ import multiprocessing
 color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'grey', 'brown']
 color_schemes_rgb = [green, blue, red, orange, purple, pink, grey, brown]
 
-
-
-
-
 # test a single policy (to be used in multiprocessing loop)
 def test_policy_multiprocess(policy, team_name, shared_vars, scores_dict=None, seeds_dict=None, n_games=1000):
     # unpack shared variables
@@ -82,7 +78,6 @@ def test_policies_in_parallel(policies, team_names, shared_vars, n_games):
 
     return dict(scores_dict), dict(seeds_dict)
 
-
 # run a single snake game (simple non-multiprocessing version)
 def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, color_scheme,
         verbose=False, seed=None):
@@ -103,7 +98,7 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, c
 
 # run a single snake game (with multiprocessing barrier to wait for the other games to end)
 def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars,
-        color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event):
+        color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event, wait=False):
 
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
@@ -115,6 +110,9 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
             rand_init_body_length, rand_init_direction, show_state, show_actions, sound_effects, 
             team_name, window_position, verbose, countdown_seconds,
             color_scheme, seed)
+
+    # this is to synchronise multiple games when spawned with a delay
+    if wait: time.sleep(0.2)
 
     # play until game over
     snake.init_render()
@@ -257,7 +255,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     for i in range(n_teams):
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
         # if the first istance is the human policy, set state_mode = 'simple'
-        # if it's None (hinteracive play), leave state_mode as is
+        # if it's None (interactive play), leave state_mode as is
         if i == 0:
             shared_vars_copy = shared_vars.copy()
             if policy != None: shared_vars_copy[6] = 'simple'
@@ -276,14 +274,14 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars_copy, 
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
-                winner_display_event))
+                winner_display_event, True))
         processes.append(p)
 
     # start the processes in reversed order with a small delay
     # in this way the interactive game (first) is started last, and the window is focuesd
     for p in reversed(processes):
         p.start()
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     # wait for all games to reach the game_over state (main process waits here too)
     game_over_barrier.wait()
@@ -493,10 +491,12 @@ def display_winner(score, team_name):
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.display.quit()
                 return
+
 def listdir_nohidden(path):
     for f in os.listdir(path):
         if not f.startswith('.'):
             yield f
+
 def load_policies_from_folder(policies_folder):
     policies, team_names = [], []
     files_list = sorted(listdir_nohidden(policies_folder))
@@ -515,7 +515,3 @@ def load_ranking(turn_folder):
         scores[team_name] = float(line[0])
         seeds[team_name] = int(line[2])
     return scores, seeds
-
-
-
-
