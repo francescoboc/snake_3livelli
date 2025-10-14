@@ -4,29 +4,25 @@ from multiplayer_tools import *
 from defaults import box_size, snake_speed, periodic, action_mode, rand_init_body_length, \
     rand_init_direction, state_mode, show_state, show_actions, sound_effects, countdown_seconds
 
-# overwrite default values
-show_state = False
-sound_effects = True
+def main():
+    # put all shared variables into a list for convenience
+    shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
+        rand_init_direction, state_mode, show_state, show_actions, 
+        sound_effects, countdown_seconds]
 
-state_mode = 'proximity'
-show_state = False
+    # load a saved policy
+    n_episodes = int(1e7)
+    pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
-# put all shared variables into a list for convenience
-shared_vars = [box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
-    rand_init_direction, state_mode, show_state, show_actions, 
-    sound_effects, countdown_seconds]
-
-# load a saved policy
-n_episodes = int(1e7)
-pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
-
-if state_mode == 'simple':
+    # build lists of policies and team names
     policies, team_names = [None, pi_star], ['Umano', 'AI']
-if state_mode == 'proximity':
-    policies, team_names = [None, pi_star], ['Umano', 'AI+']
 
-# pass the same seed to all the games
-seed = random.randrange(sys.maxsize)
+    # pass the same seed to all the games
+    seed = random.randrange(sys.maxsize)
 
-# run the games in parallel
-scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed)
+    # run the games in parallel
+    scores_dict = human_policy_vs_ai(policies, team_names, shared_vars, seed)
+
+if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
+    main()

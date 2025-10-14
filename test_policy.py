@@ -15,7 +15,7 @@ state_mode = 'proximity'
 n_games = 1000
 
 # load a saved policy
-n_episodes = int(1e6)
+n_episodes = int(1e7)
 label = None
 policy = load_policy(periodic, action_mode, state_mode, n_episodes, label=label)
 

@@ -478,7 +478,10 @@ class Snake:
         print(f"Video saved as {video_path}")
 
     # display a countdown before starting the game
-    def countdown(self):
+    def countdown(self, delay=None):
+        # wait a small delay (in seconds), if provided
+        if delay is not None: time.sleep(delay)
+
         for i in range(self.countdown_seconds, 0, -1):
             # clear screen
             self.game_window.fill((black))
@@ -573,6 +576,10 @@ class Snake:
         # values to position text on screen
         self.vert_shift = self.cell_size/6
         self.hor_shift = self.cell_size/3
+
+        # # TODO questo da testare su raspberry se l'audio non funziona
+        # if pygame.mixer.get_init():
+        #     pygame.mixer.quit()
 
         # initialize audio mixer
         pygame.mixer.init()
@@ -867,7 +874,7 @@ class Snake:
         pygame.draw.rect(self.game_window, border_color, self.game_window.get_rect(), border_px)
 
         # FPS/refresh Rate (increase speed with score)
-        self.fps.tick(self.snake_speed + self.score/8)
+        self.fps.tick(self.snake_speed + self.score*0.1)
 
         # refresh game screen
         pygame.display.flip()

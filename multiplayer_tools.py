@@ -1,6 +1,7 @@
 from tools import *
 from snake import *
 import multiprocessing
+import csv
 
 color_schemes = ['green', 'blue', 'red', 'orange', 'purple', 'pink', 'grey', 'brown']
 color_schemes_rgb = [green, blue, red, orange, purple, pink, grey, brown]
@@ -98,7 +99,8 @@ def run_snake_game(policy, team_name, window_position, cell_size, shared_vars, c
 
 # run a single snake game (with multiprocessing barrier to wait for the other games to end)
 def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, shared_vars,
-        color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event, wait=False):
+        color_scheme, verbose, seed, scores_dict, game_over_barrier, winner_display_event, 
+        human_lost_event=None, delay=None):
 
     # unpack shared variables
     box_size, snake_speed, periodic, action_mode, rand_init_body_length,\
@@ -111,17 +113,21 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
             team_name, window_position, verbose, countdown_seconds,
             color_scheme, seed)
 
-    # this is to synchronise multiple games when spawned with a delay
-    if wait: time.sleep(0.2)
-
     # play until game over
     snake.init_render()
-    if snake.countdown_seconds > 0: snake.countdown()
+    if snake.countdown_seconds > 0: 
+        snake.countdown(delay)
     state = snake.reset()
 
     # game loop
     escape_pressed = False
     while not escape_pressed:
+        # if the player is AI (policy provided), check if human has already lost
+        if policy is not None and human_lost_event is not None and human_lost_event.is_set():
+            # if he lost, increase snake speed
+            if snake.snake_speed < 50: snake.snake_speed += 0.3
+
+        # take action from policy or from pressed keys (interactive mode)
         if policy is None:
             action, escape_pressed = read_keys()
         else:
@@ -130,6 +136,9 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         snake.action = action
         next_state, reward, terminated, truncated = snake.step(action)
         if terminated or truncated:
+            # if the player is human (no policy provided), signal that the player lost
+            if policy is None and human_lost_event is not None:
+                human_lost_event.set()
             # go in game_over state but without waiting for the user to press ESC
             # (the games will be all simultaneously closed by the main thread)
             snake.game_over(wait_for_user=False)
@@ -230,6 +239,11 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
         rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
         countdown_seconds = shared_vars 
 
+    # multiprocessing.set_start_method('spawn')
+
+    # small delay to make sure that the interactive game window is created last
+    delay_seconds = 0.2
+
     # count policies to get number of teams
     n_teams = 2
 
@@ -250,6 +264,9 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     # create an event to signal the end of the winner display
     winner_display_event = multiprocessing.Event()
 
+    # create an event to signal when the human loses
+    human_lost_event = multiprocessing.Event()
+
     # create a new process for each game
     processes = []
     for i in range(n_teams):
@@ -262,7 +279,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars_copy,
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
-                winner_display_event))
+                winner_display_event, human_lost_event))
         # the second istance is the RL policy, which need action_mode = 3 to work
         else:
             shared_vars_copy = shared_vars.copy()
@@ -274,14 +291,14 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
             p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
                 policy, team_name, window_position, cell_size, shared_vars_copy, 
                 color_scheme, verbose, seed, scores_dict, game_over_barrier, 
-                winner_display_event, True))
+                winner_display_event, human_lost_event, delay_seconds))
         processes.append(p)
 
     # start the processes in reversed order with a small delay
     # in this way the interactive game (first) is started last, and the window is focuesd
     for p in reversed(processes):
         p.start()
-        time.sleep(0.2)
+        time.sleep(delay_seconds)
 
     # wait for all games to reach the game_over state (main process waits here too)
     game_over_barrier.wait()
@@ -291,8 +308,22 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     ranking = sorted(zip(scores_dict.values(), scores_dict.keys()), reverse=True)
     winner_score, winner_name = ranking[0][0], ranking[0][1]
 
+    # append results to text file
+    score_human = scores_dict[team_names[0]]
+    score_ai = scores_dict[team_names[1]]
+
+    # append results to text file
+    file_path = 'scores.csv'
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(['Umano', 'AI'])
+        writer.writerow([score_human, score_ai])
+
     # display winner on a new sindow
-    display_winner(winner_score, winner_name)
+    display_winner(winner_score, winner_name, duration=3)
 
     # signal all games to close
     winner_display_event.set()
@@ -307,7 +338,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
 def get_screen_resolution(verbose=False):
     pygame.display.init()
     # get the number of displays and their sizes
-    display_count = pygame.display.get_num_displays()
+    # display_count = pygame.display.get_num_displays()
     display_sizes = pygame.display.get_desktop_sizes()
     pygame.display.quit()
 
@@ -391,83 +422,82 @@ def calculate_size_and_positions(n_teams, box_size):
 
     return cell_size, window_positions
 
-def display_winner(score, team_name):
-    # Initialize pygame display and font modules
+def display_winner(score, team_name, duration=5):
+    # initialize pygame display and font modules
     pygame.display.init()
     pygame.font.init()
 
-    # Calculate desired window size
+    # calculate desired window size
     screen_width, screen_height = get_screen_resolution()
     window_size = (screen_width // 3, screen_height // 3)
 
-    # Create a window without frame
+    # create a window without frame
     screen = pygame.display.set_mode(window_size, pygame.NOFRAME)
 
-    # Set retro style font, colors, and background
+    # set retro style font, colors, and background
     font = pygame.font.Font(FONT_PATH, window_size[1]//5)
     text_color = yellow
     bg_color = black
     border_color = yellow
 
-    # Create the winner and score text
+    # create the winner and score text
     winner_text = f"{team_name}"
     if score == 1: score_text = f"{score} PUNTO" 
     else: score_text = f"{score} PUNTI"
     winner_surface = font.render(winner_text, True, text_color)
     score_surface = font.render(score_text, True, text_color)
 
-    # Load and display the image at the top of the screen
+    # load and display the image at the top of the screen
     image = pygame.image.load('img/crown.png')
 
-    # Get the original image size
+    # get the original image size
     image_rect = image.get_rect()
     image_width, image_height = image_rect.size
 
-    # Calculate the scale factor to fit the image while preserving aspect ratio
+    # calculate the scale factor to fit the image while preserving aspect ratio
     max_width = window_size[0] // 2
     max_height = window_size[1] // 3
     scale_factor = min(max_width / image_width, max_height / image_height)
 
-    # Scale the image while maintaining aspect ratio
+    # scale the image while maintaining aspect ratio
     new_width = int(image_width * scale_factor)
     new_height = int(image_height * scale_factor)
     image = pygame.transform.scale(image, (new_width, new_height))
 
-    # Get the size of the text and screen
+    # get the size of the text and screen
     winner_rect = winner_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 - 40))
     score_rect = score_surface.get_rect(center=(window_size[0] // 2, window_size[1] // 2 + 40))
 
-    # Calculate total content height (image + winner text + score text)
+    # calculate total content height (image + winner text + score text)
     total_height = new_height + winner_rect.height + score_rect.height + 40  # Add spacing between elements
 
-    # Calculate the top offset to center the content vertically
+    # calculate the top offset to center the content vertically
     top_offset = (window_size[1] - total_height) // 2
 
-    # Position elements relative to the top_offset
+    # position elements relative to the top_offset
     image_rect = image.get_rect(center=(window_size[0] // 2, top_offset + new_height // 2))
     winner_rect = winner_surface.get_rect(center=(window_size[0] // 2, image_rect.bottom + winner_rect.height // 2 + 20))
     score_rect = score_surface.get_rect(center=(window_size[0] // 2, winner_rect.bottom + score_rect.height // 2 + 20))
 
-    # Fill background
+    # fill background
     screen.fill(bg_color)
 
-    # Blit the image and text onto the screen
+    # blit the image and text onto the screen
     screen.blit(image, image_rect)
     screen.blit(winner_surface, winner_rect)
     screen.blit(score_surface, score_rect)
 
-    # Draw the border (blink effect)
+    # draw the border (blink effect)
     pygame.draw.rect(screen, border_color, screen.get_rect(), 1)
 
-    # Update the display
+    # update the display
     pygame.display.flip()
 
-    # Retro blinking effect
+    # retro blinking effect
     blink = True
     last_time = time.time()
     start_time = time.time()
 
-    # Blinking effect
     while True:
         if time.time() - last_time > 0.25:
             last_time = time.time()
@@ -483,10 +513,10 @@ def display_winner(score, team_name):
         pygame.display.flip()
 
         # close automatically after a fixed number of seconds
-        if time.time() - start_time > 10:
+        if time.time() - start_time > duration:
             return
 
-        # Wait for exit event
+        # wait for exit event
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 pygame.display.quit()
