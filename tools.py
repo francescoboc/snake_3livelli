@@ -67,13 +67,13 @@ def read_keys():
     # process events and queue key presses
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
+            if event.key == pygame.K_UP or event.key == pygame.K_w:
                 key_queue.append('UP')
-            elif event.key == pygame.K_DOWN:
+            elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
                 key_queue.append('DOWN')
-            elif event.key == pygame.K_LEFT:
+            elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 key_queue.append('LEFT')
-            elif event.key == pygame.K_RIGHT:
+            elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 key_queue.append('RIGHT')
             elif event.key == pygame.K_ESCAPE:
                 escape_pressed = True
