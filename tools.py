@@ -3,6 +3,12 @@ from tqdm import tqdm
 import numpy as np
 from collections import deque
 
+# hide OpenGL warning message
+sys.stderr.flush()
+devnull_fd = os.open(os.devnull, os.O_WRONLY)
+os.dup2(devnull_fd, 2)
+os.close(devnull_fd)
+
 # hide pygame welcome message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -59,6 +65,59 @@ init_size = 6
 
 # initialize a global deque to store key presses
 key_queue = deque(maxlen=3)
+
+# joystick button and axis ids
+button_id = 0
+axh_id = 0
+axv_id = 1
+
+# check for joystick events
+def read_joystick(joystick, direction=None):
+    pygame.event.pump()
+
+    button_value = joystick.get_button(button_id)
+
+    if button_value == 1: button_pressed = True
+    else: button_pressed = False
+
+    axh_value = joystick.get_axis(axh_id)
+    axv_value = joystick.get_axis(axv_id)
+
+    action = 'NO_TURN'
+    right, left, down, up = False, False, False, False
+
+    if axh_value < -0.5:
+        action = 'RIGHT'
+        right = True
+    elif axh_value > 0.5:
+        action = 'LEFT'
+        left = True
+
+    if axv_value < -0.5:
+        action = 'DOWN'
+        down = True
+    elif axv_value > 0.5:
+        action = 'UP'
+        up = True
+
+    # handle diagonal movements
+    if right and down:
+        if direction=='RIGHT': action = 'DOWN'
+        elif direction=='DOWN': action = 'RIGHT'
+
+    if right and up:
+        if direction=='RIGHT': action = 'UP'
+        elif direction=='UP': action = 'RIGHT'
+
+    if left and down:
+        if direction=='LEFT': action = 'DOWN'
+        elif direction=='DOWN': action = 'LEFT'
+
+    if left and up:
+        if direction=='LEFT': action = 'UP'
+        elif direction=='UP': action = 'LEFT'
+
+    return action, button_pressed
 
 # check for user keypresses and get the next action from to the queue
 def read_keys():

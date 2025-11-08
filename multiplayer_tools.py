@@ -107,11 +107,20 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
         countdown_seconds = shared_vars 
 
+    # if playing in interactive mode, initialise joystick, set 4-actions mode and check inactivity based on user interactions
+    if policy is None:
+        pygame.joystick.init()
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
+        action_mode = 4
+        check_inactivity = True
+    else:
+        check_inactivity = False
+
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
             rand_init_body_length, rand_init_direction, show_state, show_actions, sound_effects, 
-            team_name, window_position, verbose, countdown_seconds,
-            color_scheme, seed)
+            team_name, window_position, verbose, countdown_seconds, color_scheme, seed)
 
     # play until game over
     snake.init_render()
@@ -120,21 +129,23 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
     state = snake.reset()
 
     # game loop
-    escape_pressed = False
-    while not escape_pressed:
+    # escape_pressed = False
+    # while not escape_pressed:
+    while True:
         # if the player is AI (policy provided), check if human has already lost
         if policy is not None and human_lost_event is not None and human_lost_event.is_set():
             # if he lost, increase snake speed
-            if snake.snake_speed < 50: snake.snake_speed += 0.3
+            if snake.snake_speed < 75: snake.snake_speed += 0.3
 
         # take action from policy or from pressed keys (interactive mode)
         if policy is None:
-            action, escape_pressed = read_keys()
+            # action, escape_pressed = read_keys()
+            action, _ = read_joystick(joystick, snake.direction)
         else:
             action = policy[state]
             escape_pressed = read_esc()
         snake.action = action
-        next_state, reward, terminated, truncated = snake.step(action)
+        next_state, reward, terminated, truncated = snake.step(action, check_inactivity)
         if terminated or truncated:
             # if the player is human (no policy provided), signal that the player lost
             if policy is None and human_lost_event is not None:
@@ -323,7 +334,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
         writer.writerow([score_human, score_ai])
 
     # display winner on a new sindow
-    display_winner(winner_score, winner_name, duration=3)
+    display_winner(winner_score, winner_name, duration=5)
 
     # signal all games to close
     winner_display_event.set()
@@ -375,7 +386,7 @@ def calculate_size_and_positions(n_teams, box_size):
         window_positions.append((shift_x, shift_y))
 
     elif n_teams == 2:
-        cell_size = int(screen_heigth//1.5)//box_size
+        cell_size = int(screen_heigth//1.3)//box_size
         window_width = cell_size*box_size - margin
         rigid_shift_x = (screen_width-window_width*2)//2
         rigid_shift_y = (screen_heigth-window_width)//2
@@ -383,6 +394,8 @@ def calculate_size_and_positions(n_teams, box_size):
         for c in range(2):
             shift_x = window_width*c + rigid_shift_x
             shift_y = rigid_shift_y
+            if c==0: shift_x -= cell_size//3
+            if c==1: shift_x += cell_size//3
             window_positions.append((shift_x, shift_y))
 
     elif n_teams == 3:

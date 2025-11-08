@@ -24,6 +24,7 @@ class Snake:
             lose_rew=-10.0, 
             step_rew=0.0,
             trun_rew=-5.0,
+            max_idle_time=30
             ):
         
         # constants
@@ -66,6 +67,7 @@ class Snake:
         self.window_position = window_position
         self.countdown_seconds = countdown_seconds
         self.color_scheme = color_scheme
+        self.max_idle_time = max_idle_time
 
         # create a random number generator object
         self.rng = random.Random()
@@ -173,6 +175,7 @@ class Snake:
 
         # reset counters to check for truncation
         self.old_score = 0
+        self.old_direction = None
         self.stuck_counter = 0
 
         # output state
@@ -360,7 +363,7 @@ class Snake:
         return direction 
 
     # advance one timestep
-    def step(self, action):
+    def step(self, action, check_inactivity=False):
         # set direction based on action
         self.direction = self.get_direction_from_actions(action)
 
@@ -369,7 +372,7 @@ class Snake:
 
         # check if terminal state or truncation was reached
         terminated = self.is_terminal()
-        truncated = self.is_truncated()
+        truncated = self.is_truncated(check_inactivity)
 
         # assign rewards
         if terminated:
@@ -397,18 +400,40 @@ class Snake:
         return next_state, reward, terminated, truncated
 
     # check if the snake is stuck in a loop
-    def is_truncated(self):
+    def is_truncated(self, check_inactivity=False):
         truncated = False
 
-        # if score didn't change, increase counter
-        if self.score == self.old_score: self.stuck_counter += 1
-        else: self.stuck_counter = 0
+        # check truncation based on user interaction
+        if check_inactivity:
+            # initialise timer for the first time
+            if not hasattr(self, 'last_direction_change'):
+                self.last_direction_change = time.time()
 
-        # if the counter is stuck for too long, truncate
-        if self.stuck_counter == self.box_size_sq:
-            truncated = True
+            # if direction changed, rest timer
+            if self.direction != self.old_direction:
+                self.last_direction_change = time.time()
 
-        self.old_score = self.score
+            # measure time since last direction change
+            idle_time = time.time() - self.last_direction_change
+
+            # if direction didn't change for too long, truncate
+            if idle_time > self.max_idle_time:
+                truncated = True
+
+            # keep direction updated
+            self.old_direction = self.direction
+
+        # or based on score changes
+        else:
+            # if score didn't change, increase counter
+            if self.score == self.old_score: self.stuck_counter += 1
+            else: self.stuck_counter = 0
+
+            # if the counter is stuck for too long, truncate
+            if self.stuck_counter == self.box_size_sq:
+                truncated = True
+
+            self.old_score = self.score
 
         return truncated
 
@@ -513,6 +538,11 @@ class Snake:
         # initialise pygame 
         pygame.init()
 
+        # # initialise joystick object
+        # pygame.joystick.init()
+        # joystick = pygame.joystick.Joystick(0)
+        # joystick.init()
+
         # initialise game window 
         if self.team_name != None: pygame.display.set_caption(self.team_name)
         else: pygame.display.set_caption('Snake')
@@ -582,7 +612,7 @@ class Snake:
         #     pygame.mixer.quit()
 
         # initialize audio mixer
-        pygame.mixer.init()
+        # pygame.mixer.init()
 
         # load sounds
         if self.sound_effects:
