@@ -30,7 +30,7 @@ state_mode = 'proximity'
 # visual and sound effects
 show_state = False
 show_actions = True
-sound_effects = True
+sound_effects = False
 window_size = 900
 
 team_name = None

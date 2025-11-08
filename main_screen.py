@@ -1,6 +1,5 @@
 from pie_chart import *
-import human_vs_ai
-# import subprocess
+import subprocess
 
 def read_scores(file_path='scores.csv'):
     if not os.path.exists(file_path):
@@ -17,6 +16,11 @@ def read_scores(file_path='scores.csv'):
 
 def start_screen_loop():
     pygame.init()
+
+    # initialize joystick
+    pygame.joystick.init()
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
 
     # get total screen size
     display_sizes = pygame.display.get_desktop_sizes()
@@ -37,9 +41,10 @@ def start_screen_loop():
     title_string = "sfida l'AI a snake!"
 
     prompt_color = yellow
-    prompt_string = 'premi spazio per giocare'
+    prompt_string = 'premi il bottone per iniziare'
 
     # TODO usa questi stessi colori anche per il serpente
+    # USA COLORI DIVERSI PER OGNI livello di difficolta AI
     human_color = green
     ai_color = red
     draw_color = yellow
@@ -53,39 +58,29 @@ def start_screen_loop():
     prompt_rect = prompt_surface.get_rect(center=(WIDTH//2, HEIGHT//2 + spacing))
 
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                elif event.key == pygame.K_SPACE:
 
-                    # # blackout the screen to reduce flashing when the game windows are closed
-                    # screen.fill(bg_color)
-                    # pygame.display.flip()
+        _, start_pressed = read_joystick(joystick)
 
-                    # # run human_vs_ai function and freeze loop until termination
-                    # # subprocess.run(['python', 'human_vs_ai.py'])
-                    # process = subprocess.Popen(['python', 'human_vs_ai.py'])
-                    # process.wait()
-                    human_vs_ai.main()
+        if start_pressed:
+            # # blackout the screen to reduce flashing when the game windows are closed
+            screen.fill(bg_color)
+            pygame.display.flip()
 
-                    # read scores from csv file
-                    scores_human, scores_ai = read_scores()
+            # # run human_vs_ai function and freeze loop until termination
+            # subprocess.run(['python', 'human_vs_ai.py'])
+            subprocess.run(['python', 'human_vs_ai.py'], stderr=subprocess.DEVNULL)
 
-                    # TODO close and reopen display to regain focus (dirty)
-                    pygame.display.quit()
-                    pygame.display.init()
-                    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
+            # read scores from csv file
+            scores_human, scores_ai = read_scores()
 
-                    # # TODO get id of pygame window and use xdotool to regain focus
-                    # # pygame.time.wait(150)
-                    # wid = pygame.display.get_wm_info().get('window')
-                    # subprocess.run(['xdotool', 'windowactivate', str(wid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # get id of pygame window and use xdotool to regain focus
+            pygame.time.wait(150)
+            wid = pygame.display.get_wm_info().get('window')
+            subprocess.run(['xdotool', 'windowactivate', str(wid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                    # show results with a pie chart
-                    draw_pie_chart(screen, scores_human, scores_ai, font_title, 
-                            font_sub, human_color, ai_color, draw_color, duration=3000)
+            # show results with a pie chart
+            draw_pie_chart(screen, joystick, scores_human, scores_ai, font_title, 
+                    font_sub, human_color, ai_color, draw_color, duration=30)
 
         screen.fill(bg_color)
         screen.blit(title_surface, title_rect)

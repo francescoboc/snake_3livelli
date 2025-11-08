@@ -14,6 +14,6 @@ state_mode = 'proximity'
 
 # visual and sound effects
 show_state = False
-show_actions = True
+show_actions = False
 sound_effects = True
 countdown_seconds = 5

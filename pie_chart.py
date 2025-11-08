@@ -1,12 +1,13 @@
 from tools import *
 
-def draw_pie_chart(screen, scores_human, scores_ai, font_title, font_sub, human_color, ai_color, draw_color, duration=5000):
+def draw_pie_chart(screen, joystick, scores_human, scores_ai, font_title, font_sub, human_color, ai_color, draw_color, duration):
     WIDTH, HEIGHT = screen.get_size()
 
     # cosmetic parameters
     title_text = 'statistica vittorie'
     title_pos = (WIDTH//2, HEIGHT//7)
     title_color = white
+    hint_color = white
     pie_radius = min(WIDTH, HEIGHT)//5
     pie_center = (WIDTH//2, 1.2*(HEIGHT//2))
     radial_line_length = 50
@@ -14,6 +15,8 @@ def draw_pie_chart(screen, scores_human, scores_ai, font_title, font_sub, human_
     label_offset = 10
     border_width = 4
     lines_width = 3
+
+    font_hint = pygame.font.Font(FONT_PATH, HEIGHT//50)
 
     # set colors
     colors = {'Umano': human_color, 'AI': ai_color, 'Pareggio': draw_color}
@@ -89,6 +92,45 @@ def draw_pie_chart(screen, scores_human, scores_ai, font_title, font_sub, human_
         # # label border
         # pygame.draw.rect(screen, black, text_rect.inflate(10, 6))
         # pygame.draw.rect(screen, colors[label], text_rect.inflate(10, 6), width=2)
+
+    # small message bottom right
+    hint_text = 'Premi il bottone per continuare'
+    hint_surface = font_hint.render(hint_text, True, hint_color)
+    # hint_rect = hint_surface.get_rect(bottomright=(WIDTH - 20, HEIGHT - 20))
+    hint_rect = hint_surface.get_rect(midbottom=(WIDTH//2, HEIGHT - 20))
+    screen.blit(hint_surface, hint_rect)
     
     pygame.display.flip()
-    pygame.time.wait(duration)
+    # pygame.time.wait(duration)
+
+    # exit loop
+    start_time = time.time()
+    pressed_once = False
+
+    while True:
+        _, button_pressed = read_joystick(joystick)
+
+        if button_pressed:
+            pressed_once = True
+            break
+
+        elapsed = (time.time() - start_time) 
+        if elapsed >= duration:
+            break
+
+        pygame.time.delay(10)
+
+    # if button was pressed, wait until release to not send new inut to the main loop
+    if pressed_once:
+        release_start = time.time()
+        while True:
+            _, button_pressed = read_joystick(joystick)
+
+            if not button_pressed:
+                break
+
+            # wait half second
+            if time.time() - release_start > 0.5:
+                break
+
+            pygame.time.delay(10)
