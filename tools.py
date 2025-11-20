@@ -3,11 +3,11 @@ from tqdm import tqdm
 import numpy as np
 from collections import deque
 
-# hide OpenGL warning message
-sys.stderr.flush()
-devnull_fd = os.open(os.devnull, os.O_WRONLY)
-os.dup2(devnull_fd, 2)
-os.close(devnull_fd)
+# # hide OpenGL warning message
+# sys.stderr.flush()
+# devnull_fd = os.open(os.devnull, os.O_WRONLY)
+# os.dup2(devnull_fd, 2)
+# os.close(devnull_fd)
 
 # hide pygame welcome message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'

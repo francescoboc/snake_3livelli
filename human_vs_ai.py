@@ -10,7 +10,10 @@ rand_init_direction, state_mode, show_state, show_actions,
 sound_effects, countdown_seconds]
 
 # load a saved policy
-n_episodes = int(1e7)
+# n_episodes = int(1e2)
+n_episodes = int(1e4)
+# n_episodes = int(1e7)
+
 pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 
 # build lists of policies and team names
