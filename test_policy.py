@@ -1,7 +1,7 @@
 from tools import *
 
 # game parameters
-box_size = 20
+box_size = 18
 periodic = True
 action_mode = 3
 rand_init_body_length = False

@@ -16,8 +16,8 @@ seed = None
 # seed = 4667075490782767144
 
 # game parameters
-box_size = 20
-snake_speed = 10
+box_size = 18
+snake_speed = 20
 periodic = True
 action_mode = 3
 rand_init_body_length = False
@@ -29,7 +29,7 @@ state_mode = 'proximity'
 
 # visual and sound effects
 show_state = False
-show_actions = True
+show_actions = False
 sound_effects = False
 window_size = 900
 
@@ -55,6 +55,6 @@ policy = None
 n_episodes = int(1e7)
 label = None
 # label = 'demo'
-# policy = load_policy(periodic, action_mode, state_mode, n_episodes, label=label)
+policy = load_policy(periodic, action_mode, state_mode, n_episodes, label=label)
 
 snake.play(policy)
