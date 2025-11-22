@@ -29,7 +29,8 @@ def start_screen_loop():
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
 
     # set retro style font, colors, and background
-    font_title_height = HEIGHT//10
+    # font_title_height = HEIGHT//10
+    font_title_height = WIDTH//10
     font_sub_height = font_title_height//2
     font_title = pygame.font.Font(FONT_PATH, font_title_height)
     font_sub = pygame.font.Font(FONT_PATH, font_sub_height)

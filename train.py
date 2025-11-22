@@ -9,7 +9,7 @@ from snake import *
 from qlearning import *
 
 # game parameters
-box_size = 20
+box_size = 18
 periodic = True
 action_mode = 3
 rand_init_body_length = True
@@ -51,14 +51,16 @@ q_star, pi_star = agent.train()
 n_games = 1000
 mean_score, trun_ratio = test_policy(action_mode, state_mode, box_size, periodic, rand_init_body_length, rand_init_direction, n_games, pi_star)
 
-# prompt user to save or not the policy
-while True:
-    user_input = input("\nSave learned policy? (yes/no): ")
-    if user_input.lower() in ["yes", "y"]:
-        save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label=None)
-        break
-    elif user_input.lower() in ["no", "n"]:
-        print("Exiting...")
-        break
-    else:
-        print("Invalid input. Please enter yes/no.")
+save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label=None)
+
+# # prompt user to save or not the policy
+# while True:
+#     user_input = input("\nSave learned policy? (yes/no): ")
+#     if user_input.lower() in ["yes", "y"]:
+#         save_policy(pi_star, periodic, action_mode, state_mode, n_episodes, label=None)
+#         break
+#     elif user_input.lower() in ["no", "n"]:
+#         print("Exiting...")
+#         break
+#     else:
+#         print("Invalid input. Please enter yes/no.")
