@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Start Snake
+Comment=Avvia Snake vs AI
+Exec=lxterminal --working-directory=/home/taxi1729/snake_3livelli -e "./start_main.sh easy"
+Icon=utilities-terminal
+Terminal=false
+StartupNotify=false

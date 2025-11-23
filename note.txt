@@ -1,0 +1,7 @@
+i file che si trovano nella cartella ~/.config/autostart vengono lanciati automaticamente all'avvio del raspberry 
+
+in particolare, il file StartSnake.desktop lancia il comando 
+lxterminal --working-directory=/home/taxi1729/snake_3livelli -e "./start_main.sh easy"
+che apre un terminale e lancia lo script start_main.sh contenuto nella cartella snake_3livelli
+
+NB: i livelli di difficoltà disponibili sono: easy, medium, hard
