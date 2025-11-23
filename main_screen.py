@@ -1,5 +1,11 @@
 from pie_chart import *
 import subprocess
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--level', choices=['easy', 'medium', 'hard'], default='medium')
+    return parser.parse_args()
 
 def read_scores(file_path='scores.csv'):
     if not os.path.exists(file_path):
@@ -15,6 +21,7 @@ def read_scores(file_path='scores.csv'):
     return scores_human, scores_ai
 
 def start_screen_loop():
+    # initialize pygame
     pygame.init()
 
     # initialize joystick
@@ -28,48 +35,35 @@ def start_screen_loop():
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
 
-    # set retro style font, colors, and background
-    # font_title_height = HEIGHT//10
-    font_title_height = WIDTH//10
-    font_sub_height = font_title_height//2
-    font_title = pygame.font.Font(FONT_PATH, font_title_height)
-    font_sub = pygame.font.Font(FONT_PATH, font_sub_height)
+    # load and scale background image
+    bg_image = pygame.image.load("sfondo_snake.jpg")
+    bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))
 
-    bg_color = black
-    border_color = yellow
+    # parse argument to set level of AI
+    args = parse_args()
+    level = args.level
 
-    title_color = white
-    title_string = "sfida l'AI a snake!"
+    if level == 'easy':
+        ai_color = blue
+    elif level == 'medium':
+        ai_color = orange
+    elif level == 'hard':
+        ai_color = pink
 
-    prompt_color = yellow
-    prompt_string = 'premi il bottone per iniziare'
-
-    # TODO usa questi stessi colori anche per il serpente
-    # USA COLORI DIVERSI PER OGNI livello di difficolta AI
     human_color = green
-    ai_color = red
-    draw_color = yellow
-
-    spacing = font_title_height
-
-    title_surface = font_title.render(title_string, True, title_color)
-    prompt_surface = font_sub.render(prompt_string, True, prompt_color)
-
-    title_rect = title_surface.get_rect(center=(WIDTH//2, HEIGHT//2))
-    prompt_rect = prompt_surface.get_rect(center=(WIDTH//2, HEIGHT//2 + spacing))
+    draw_color = grey
 
     while True:
-
         _, start_pressed = read_joystick(joystick)
 
         if start_pressed:
-            # # blackout the screen to reduce flashing when the game windows are closed
-            screen.fill(bg_color)
+            # blackout the screen
+            screen.fill(black)
             pygame.display.flip()
 
-            # # run human_vs_ai function and freeze loop until termination
-            # subprocess.run(['python', 'human_vs_ai.py'])
-            subprocess.run(['python', 'human_vs_ai.py'], stderr=subprocess.DEVNULL)
+            # run human_vs_ai function and freeze loop until termination
+            subprocess.run(['python', 'human_vs_ai.py', '--level', level], stderr=subprocess.DEVNULL)
+            # subprocess.run(['python', 'human_vs_ai.py', '--level', level])
 
             # read scores from csv file
             scores_human, scores_ai = read_scores()
@@ -77,17 +71,17 @@ def start_screen_loop():
             # get id of pygame window and use xdotool to regain focus
             pygame.time.wait(150)
             wid = pygame.display.get_wm_info().get('window')
-            subprocess.run(['xdotool', 'windowactivate', str(wid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['xdotool', 'windowactivate', str(wid)], 
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             # show results with a pie chart
-            draw_pie_chart(screen, joystick, scores_human, scores_ai, font_title, 
-                    font_sub, human_color, ai_color, draw_color, duration=30)
+            draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, 
+                           human_color, ai_color, draw_color, duration=45)
 
-        screen.fill(bg_color)
-        screen.blit(title_surface, title_rect)
-        screen.blit(prompt_surface, prompt_rect)
-
+        # redraw the background
+        screen.blit(bg_image, (0, 0))
         pygame.display.flip()
+        pygame.time.wait(10)
 
 if __name__ == "__main__":
     start_screen_loop()

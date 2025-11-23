@@ -21,8 +21,10 @@ FONT_PATH = 'fonts/pixel_emulator.otf'
 signal.signal(signal.SIGINT, lambda x, y: sys.exit())
 
 # colors
-green = pygame.Color(6, 128, 81)
-lightGreen = pygame.Color(148, 191, 48)
+# green = pygame.Color(6, 128, 81)
+# lightGreen = pygame.Color(148, 191, 48)
+green = pygame.Color(5, 196, 5)
+lightGreen = pygame.Color(177, 242, 26)
 
 blue = pygame.Color(28, 117, 189)
 lightBlue = pygame.Color(73, 194, 242)

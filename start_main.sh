@@ -7,16 +7,22 @@ unclutter -idle 0 &
 xrandr --output HDMI-1 --rotate left
 
 # chiudi lxpanel (la taskbar in alto)
-# (commentato per adesso perchè lo nascondiamo e lo mettiamo a 0 pixel di spessore)
-# pkill lxpanel
+pkill lxpanel
 
 # cd in questa cartella
 cd "$(dirname "$0")"
 
 # lancia lo script python
-python "main_screen.py"
+# imposta il livello di difficoltà a secondo dall'argomento passato allo script
+LEVEL=${1:-medium}   # livello di default = medium
+python "main_screen.py" --level "$LEVEL"
 
+# riporta lo schermo in orizzontale
 xrandr --output HDMI-1 --rotate normal
+
+# rilancia lxpanel
+# lxpanel --profile LXDE-pi &
+lxpanel --profile LXDE-pi >/dev/null 2>&1 &
 
 # aspetta per user input
 echo ""

@@ -603,10 +603,6 @@ class Snake:
         # color of the head
         self.head_color = self.start_color
 
-        # values to position text on screen
-        self.vert_shift = self.cell_size/6
-        self.hor_shift = self.cell_size/3
-
         # # TODO questo da testare su raspberry se l'audio non funziona
         # if pygame.mixer.get_init():
         #     pygame.mixer.quit()
@@ -787,8 +783,13 @@ class Snake:
         self.score_surface = self.main_font.render(f'{self.score}', True, color)
         # self.score_surface.set_alpha(int(0.75 * 255))
 
+        # text_rect = self.score_surface.get_rect(center=(self.cell_size, self.score_surface.get_height() // 2))
+        text_rect = self.score_surface.get_rect()
+        center_y = self.score_surface.get_height() // 2
+        text_rect.topleft = (self.cell_size // 3, center_y - text_rect.height // 2)
+
         # display text
-        self.game_window.blit(self.score_surface, (self.hor_shift, self.vert_shift))
+        self.game_window.blit(self.score_surface, text_rect.topleft)
 
     # display team name onscreen
     def display_team_name(self):
@@ -799,8 +800,38 @@ class Snake:
         # calculate the position to center the text
         text_rect = self.team_name_surface.get_rect(center=(self.box_length // 2, self.team_name_surface.get_height() // 2))
 
-        # display the black text on top
+        # display text
         self.game_window.blit(self.team_name_surface, text_rect.topleft)
+
+    # display a blinking fast-forward icon (two small triangles)
+    def display_ff_icon(self, color=white, blink_interval=0.2):
+        if not hasattr(self, '_ff_last_time'):
+            # initialize internal timer and state
+            self._ff_last_time = time.time()
+            self._ff_visible = True
+
+        # toggle visibility if interval passed
+        now = time.time()
+        if now - self._ff_last_time > blink_interval:
+            self._ff_last_time = now
+            self._ff_visible = not self._ff_visible
+
+        if self._ff_visible:
+            # size and position
+            tri_width = self.cell_size // 2
+            tri_height = self.cell_size // 1.5
+            margin = self.cell_size // 3
+            x0 = margin
+            y0 = self.game_window.get_height() - tri_height - margin
+
+            # first triangle points (pointing right)
+            tri1 = [(x0, y0), (x0, y0 + tri_height), (x0 + tri_width, y0 + tri_height//2)]
+            # second triangle points, slightly shifted right
+            shift = tri_width + self.cell_size // 10
+            tri2 = [(x0 + shift, y0), (x0 + shift, y0 + tri_height), (x0 + shift + tri_width, y0 + tri_height//2)]
+
+            pygame.draw.polygon(self.game_window, color, tri1)
+            pygame.draw.polygon(self.game_window, color, tri2)
 
     # display info about state onscreen
     def display_state_info(self, color, head_rect):
@@ -897,6 +928,10 @@ class Snake:
         # display team name
         if self.team_name != None:
             self.display_team_name()
+
+        # display fast forward icon
+        if hasattr(self, '_show_fast_forward'):
+            self.display_ff_icon()
 
         # draw window border
         if self.periodic: border_color, border_px = white, 1

@@ -134,7 +134,8 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         # if the player is AI (policy provided), check if human has already lost
         if policy is not None and human_lost_event is not None and human_lost_event.is_set():
             # if he lost, increase snake speed
-            if snake.snake_speed < 75: snake.snake_speed += 0.3
+            if snake.snake_speed < 75: snake.snake_speed += 0.2
+            snake._show_fast_forward = True
 
         # take action from policy or from pressed keys (interactive mode)
         if policy is None:
@@ -251,9 +252,6 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
 
     # multiprocessing.set_start_method('spawn')
 
-    # small delay to make sure that the interactive game window is created last
-    delay_seconds = 0.2
-
     # count policies to get number of teams
     n_teams = 2
 
@@ -281,27 +279,29 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     processes = []
     for i in range(n_teams):
         policy, team_name, window_position = policies[i], team_names[i], window_positions[i]
+
         # if the first istance is the human policy, set state_mode = 'simple'
         # if it's None (interactive play), leave state_mode as is
         if i == 0:
             shared_vars_copy = shared_vars.copy()
             if policy != None: shared_vars_copy[6] = 'simple'
-            p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
-                policy, team_name, window_position, cell_size, shared_vars_copy,
-                color_scheme, verbose, seed, scores_dict, game_over_barrier, 
-                winner_display_event, human_lost_event))
+            color = 'green'
+            delay_seconds = None
+
         # the second istance is the RL policy, which need action_mode = 3 to work
         else:
             shared_vars_copy = shared_vars.copy()
             shared_vars_copy[3] = 3
-            if state_mode == 'simple': 
-                color_scheme = 'grey'
-            elif state_mode == 'proximity': 
-                color_scheme = 'brown'
-            p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
-                policy, team_name, window_position, cell_size, shared_vars_copy, 
-                color_scheme, verbose, seed, scores_dict, game_over_barrier, 
-                winner_display_event, human_lost_event, delay_seconds))
+            color = color_scheme
+
+            # small delay to make sure that the interactive game window is created last
+            delay_seconds = 0.2
+
+        p = multiprocessing.Process(target=run_snake_game_with_barrier, args=(
+            policy, team_name, window_position, cell_size, shared_vars_copy, 
+            color, verbose, seed, scores_dict, game_over_barrier, 
+            winner_display_event, human_lost_event, delay_seconds))
+
         processes.append(p)
 
     # start the processes in reversed order with a small delay
