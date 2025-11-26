@@ -24,10 +24,11 @@ def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, hum
     pie_center = (WIDTH//2, HEIGHT//2.2)  
 
     radial_line_length = 50
-    hor_segment_length = 75
+    hor_segment_length = 50
     label_offset = 10
     border_width = 4
     lines_width = 3
+    label_spacing = HEIGHT//40
 
     colors = {'Umano': human_color, 'AI': ai_color, 'Pareggio': draw_color}
 
@@ -110,26 +111,36 @@ def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, hum
         pygame.draw.line(screen, colors[label], line_start, line_mid, width=lines_width)
         pygame.draw.line(screen, colors[label], line_mid, line_end, width=lines_width)
 
-        # --- label ---
-        perc = (p*100)
-        text = f'{label}: {perc:.1f}%'
-        text_surface = FONT_LABEL.render(text, True, colors[label])
+        # # --- label (single line) ---
+        # perc = (p*100)
+        # text = f'{label}: {perc:.1f}%'
+        # text_surface = FONT_LABEL.render(text, True, colors[label])
 
+        # if align == 'left':
+        #     text_rect = text_surface.get_rect(midleft=(line_end[0] + label_offset, line_end[1]))
+        # else:
+        #     text_rect = text_surface.get_rect(midright=(line_end[0] - label_offset, line_end[1]))
+
+        # screen.blit(text_surface, text_rect)
+
+        # --- label (two lines) ---
+        perc = p * 100
+        line1 = label
+        line2 = f"{perc:.1f}%"
+
+        surf1 = FONT_LABEL.render(line1, True, colors[label])
+        surf2 = FONT_LABEL.render(line2, True, colors[label])
+
+        # align both lines to same cetral point
         if align == 'left':
-            text_rect = text_surface.get_rect(midleft=(line_end[0] + label_offset, line_end[1]))
+            r1 = surf1.get_rect(midleft=(line_end[0] + label_offset, line_end[1] - label_spacing//2))
+            r2 = surf2.get_rect(midleft=(line_end[0] + label_offset, line_end[1] + label_spacing//2))
         else:
-            text_rect = text_surface.get_rect(midright=(line_end[0] - label_offset, line_end[1]))
+            r1 = surf1.get_rect(midright=(line_end[0] - label_offset, line_end[1] - label_spacing//2))
+            r2 = surf2.get_rect(midright=(line_end[0] - label_offset, line_end[1] + label_spacing//2))
 
-        # --- check if text goes out screen ---
-        if text_rect.right > WIDTH - 10:
-            shift = text_rect.right - (WIDTH - 10)
-            text_rect.x -= shift
-
-        if text_rect.left < 10:
-            shift = 10 - text_rect.left
-            text_rect.x += shift
-
-        screen.blit(text_surface, text_rect)
+        screen.blit(surf1, r1)
+        screen.blit(surf2, r2)
 
     # --- subtitle below pie ---
     sub_bottom_surface = FONT_SUBTITLE.render(subtitle_bottom, True, subtitle_color)

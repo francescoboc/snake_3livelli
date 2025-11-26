@@ -4,7 +4,7 @@
 unclutter -idle 0 &
 
 # ruota lo schermo
-xrandr --output HDMI-1 --rotate left
+xrandr --output HDMI-1 --rotate right
 
 # chiudi lxpanel (la taskbar in alto)
 pkill lxpanel
@@ -17,8 +17,8 @@ cd "$(dirname "$0")"
 LEVEL=${1:-medium}   # livello di default = medium
 python "main_screen.py" --level "$LEVEL"
 
-# riporta lo schermo in orizzontale
-xrandr --output HDMI-1 --rotate normal
+# # riporta lo schermo in orizzontale
+# xrandr --output HDMI-1 --rotate normal
 
 # rilancia lxpanel
 # lxpanel --profile LXDE-pi &
