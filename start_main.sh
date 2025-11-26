@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-# nascondi cursore
-unclutter -idle 0 &
-
 # ruota lo schermo
 xrandr --output HDMI-1 --rotate right
+xrandr --output HDMI-2 --rotate right
+
+# nascondi cursore
+unclutter -idle 0 &
 
 # chiudi lxpanel (la taskbar in alto)
 pkill lxpanel
