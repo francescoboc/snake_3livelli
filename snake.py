@@ -372,7 +372,8 @@ class Snake:
 
         # check if terminal state or truncation was reached
         terminated = self.is_terminal()
-        truncated = self.is_truncated(check_inactivity)
+        # truncated = self.is_truncated(check_inactivity)
+        truncated = False
 
         # assign rewards
         if terminated:
