@@ -47,7 +47,7 @@ def start_screen_loop():
         ai_color = blue
 
     elif level == 'medium':
-        ai_color = yellow
+        ai_color = orange
 
     elif level == 'hard':
         ai_color = red

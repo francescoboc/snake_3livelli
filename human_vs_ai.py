@@ -25,7 +25,7 @@ if level == 'easy':
     n_episodes = int(1e2)
 
 elif level == 'medium':
-    ai_color = 'yellow'
+    ai_color = 'orange'
     n_episodes = int(1e4)
 
 elif level == 'hard':
