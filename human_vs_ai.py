@@ -21,14 +21,16 @@ level = args.level
 
 # load a saved policy
 if level == 'easy':
-    n_episodes = int(1e2)
     ai_color = 'blue'
+    n_episodes = int(1e2)
+
 elif level == 'medium':
+    ai_color = 'yellow'
     n_episodes = int(1e4)
-    ai_color = 'orange'
+
 elif level == 'hard':
+    ai_color = 'red'
     n_episodes = int(1e7)
-    ai_color = 'pink'
 
 pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
 

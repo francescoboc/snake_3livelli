@@ -45,10 +45,12 @@ def start_screen_loop():
 
     if level == 'easy':
         ai_color = blue
+
     elif level == 'medium':
-        ai_color = orange
+        ai_color = yellow
+
     elif level == 'hard':
-        ai_color = pink
+        ai_color = red
 
     human_color = green
     draw_color = grey
