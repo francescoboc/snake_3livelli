@@ -47,8 +47,13 @@ def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, hum
     eps = 1e-6
     frac_filtered = {k: v for k, v in fractions.items() if v > eps}
 
+    scores_human_clean = []
+    for s in scores_human:
+        if s != 0.0:
+            scores_human_clean.append(s)
+
     # average scores
-    avg_human = sum(scores_human) / len(scores_human)
+    avg_human = sum(scores_human_clean) / len(scores_human_clean)
     avg_ai = sum(scores_ai) / len(scores_ai)
 
     # ---------- draw ----------

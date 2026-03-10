@@ -112,7 +112,7 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
         action_mode = 4
-        check_inactivity = True
+        check_inactivity = False 
     else:
         check_inactivity = False
 
@@ -333,7 +333,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
         writer.writerow([score_human, score_ai])
 
     # display winner on a new sindow
-    display_winner(winner_score, winner_name, duration=5)
+    display_winner(winner_score, winner_name, duration=7.5)
 
     # signal all games to close
     winner_display_event.set()
@@ -459,7 +459,7 @@ def calculate_size_and_positions(n_teams, box_size):
 #     return cell_size, window_positions
 
 # version for rotated screen
-def display_winner(score, team_name, duration=5):
+def display_winner(score, team_name, duration=7.5):
     # initialize pygame display and font modules
     pygame.display.init()
     pygame.font.init()

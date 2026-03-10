@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # ruota lo schermo
-xrandr --output HDMI-1 --rotate right
-xrandr --output HDMI-2 --rotate right
+#xrandr --output HDMI-1 --rotate left
+#xrandr --output HDMI-2 --rotate left
 
 # nascondi cursore
 unclutter -idle 0 &
 
 # chiudi lxpanel (la taskbar in alto)
-pkill lxpanel
+#pkill lxpanel
 
 # cd in questa cartella
 cd "$(dirname "$0")"
