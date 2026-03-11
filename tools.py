@@ -9,6 +9,10 @@ from collections import deque
 # os.dup2(devnull_fd, 2)
 # os.close(devnull_fd)
 
+# hide pygame runtime warning
+import warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning)
+
 # hide pygame welcome message
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -62,7 +66,7 @@ compass_dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 
 # initial direction and size of the snake
-init_direction = 'RIGHT' 
+init_direction = 'UP' 
 init_size = 6
 
 # initialize a global deque to store key presses
@@ -72,6 +76,9 @@ key_queue = deque(maxlen=3)
 button_id = 0
 axh_id = 0
 axv_id = 1
+
+button_left_id = 0
+button_right_id = 1
 
 # check for joystick events
 def read_joystick(joystick, direction=None):
@@ -118,6 +125,23 @@ def read_joystick(joystick, direction=None):
     if left and up:
         if direction=='LEFT': action = 'UP'
         elif direction=='UP': action = 'LEFT'
+
+    return action, button_pressed
+
+def read_buttons():
+    button_pressed = False
+    for event in pygame.event.get():
+        if event.type == pygame.JOYBUTTONDOWN:
+            button_pressed = True
+            if event.button == button_left_id:
+                key_queue.append('LEFT')
+            elif event.button == button_right_id:
+                key_queue.append('RIGHT')
+
+    if key_queue:
+        action = key_queue.popleft()
+    else:
+        action = 'NO_TURN'
 
     return action, button_pressed
 

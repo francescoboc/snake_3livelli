@@ -15,8 +15,16 @@ def read_scores(file_path='scores.csv'):
     with open(file_path, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            scores_human.append(float(row['Umano']))
-            scores_ai.append(float(row['AI']))
+            try:
+                human = float(row['Umano'])
+                ai = float(row['AI'])
+
+            # skip corrupted rows
+            except (ValueError, KeyError, TypeError):
+                continue
+
+            scores_human.append(human)
+            scores_ai.append(ai)
 
     return scores_human, scores_ai
 
@@ -56,7 +64,8 @@ def start_screen_loop():
     draw_color = grey
 
     while True:
-        _, start_pressed = read_joystick(joystick)
+        # _, start_pressed = read_joystick(joystick)
+        _, start_pressed = read_buttons()
 
         if start_pressed:
             # blackout the screen

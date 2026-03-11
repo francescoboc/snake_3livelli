@@ -106,12 +106,11 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         rand_init_direction, state_mode, show_state, show_actions, sound_effects, \
         countdown_seconds = shared_vars 
 
-    # if playing in interactive mode, initialise joystick, set 4-actions mode and check inactivity based on user interactions
+    # if playing in interactive mode, initialise joystick and check inactivity based on user interactions
     if policy is None:
         pygame.joystick.init()
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
-        action_mode = 4
         check_inactivity = False 
     else:
         check_inactivity = False
@@ -140,7 +139,8 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         # take action from policy or from pressed keys (interactive mode)
         if policy is None:
             # action, escape_pressed = read_keys()
-            action, _ = read_joystick(joystick, snake.direction)
+            action, _ = read_buttons()
+            # action, _ = read_joystick(joystick, snake.direction)
         else:
             action = policy[state]
             escape_pressed = read_esc()
@@ -322,15 +322,20 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
     score_human = scores_dict[team_names[0]]
     score_ai = scores_dict[team_names[1]]
 
-    # append results to text file
-    file_path = 'scores.csv'
-    file_exists = os.path.isfile(file_path)
+    # append results to text file only if human score > 0
+    if score_human > 0:
+        file_path = 'scores.csv'
+        file_exists = os.path.isfile(file_path)
 
-    with open(file_path, 'a', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        if not file_exists:
-            writer.writerow(['Umano', 'AI'])
-        writer.writerow([score_human, score_ai])
+        with open(file_path, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            if not file_exists:
+                writer.writerow(['Umano', 'AI'])
+            writer.writerow([score_human, score_ai])
+
+            # force write to disk
+            csvfile.flush()
+            os.fsync(csvfile.fileno())
 
     # display winner on a new sindow
     display_winner(winner_score, winner_name, duration=7.5)
