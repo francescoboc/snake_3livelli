@@ -80,7 +80,8 @@ axv_id = 1
 button_left_id = 0
 button_right_id = 1
 
-def read_joystick(direction=None):
+# # check for joystick events
+def read_joystick():
 
     button_pressed = False
 
@@ -110,54 +111,6 @@ def read_joystick(direction=None):
         action = 'NO_TURN'
 
     return action, button_pressed
-
-# # check for joystick events
-# def read_joystick(joystick, direction=None):
-#     pygame.event.pump()
-
-#     button_value = joystick.get_button(button_id)
-
-#     if button_value == 1: button_pressed = True
-#     else: button_pressed = False
-
-#     axh_value = joystick.get_axis(axh_id)
-#     axv_value = joystick.get_axis(axv_id)
-
-#     action = 'NO_TURN'
-#     right, left, down, up = False, False, False, False
-
-#     if axh_value < -0.5:
-#         action = 'RIGHT'
-#         right = True
-#     elif axh_value > 0.5:
-#         action = 'LEFT'
-#         left = True
-
-#     if axv_value < -0.5:
-#         action = 'DOWN'
-#         down = True
-#     elif axv_value > 0.5:
-#         action = 'UP'
-#         up = True
-
-#     # handle diagonal movements
-#     if right and down:
-#         if direction=='RIGHT': action = 'DOWN'
-#         elif direction=='DOWN': action = 'RIGHT'
-
-#     if right and up:
-#         if direction=='RIGHT': action = 'UP'
-#         elif direction=='UP': action = 'RIGHT'
-
-#     if left and down:
-#         if direction=='LEFT': action = 'DOWN'
-#         elif direction=='DOWN': action = 'LEFT'
-
-#     if left and up:
-#         if direction=='LEFT': action = 'UP'
-#         elif direction=='UP': action = 'LEFT'
-
-#     return action, button_pressed
 
 def read_buttons():
     button_pressed = False

@@ -32,7 +32,8 @@ elif level == 'hard':
     ai_color = 'red'
     n_episodes = int(1e7)
 
-pi_star = load_policy(periodic, action_mode, state_mode, n_episodes, verbose=False)
+# action mode is set to 3 because the optimal policy was trained on 3 actions
+pi_star = load_policy(periodic, 3, state_mode, n_episodes, verbose=False)
 
 # build lists of policies and team names
 policies, team_names = [None, pi_star], ['Umano', 'AI']

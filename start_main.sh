@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
 
-# ruota lo schermo
-#xrandr --output HDMI-1 --rotate left
-#xrandr --output HDMI-2 --rotate left
+ ruota lo schermo
+xrandr --output HDMI-1 --rotate left
+xrandr --output HDMI-2 --rotate left
 
-# chiudi lxpanel (la taskbar in alto)
-#pkill lxpanel
+ chiudi lxpanel (la taskbar in alto)
+pkill lxpanel
 
 # nascondi cursore
 unclutter -idle 0 &
 
 # cd in questa cartella
 cd "$(dirname "$0")"
+
+for i in {1..10}; do
+    echo "Controllo connessione internet ($i/10)..."
+    if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
+        echo "Controllo aggiornamenti..."
+        git pull
+        break
+    fi
+    sleep 2
+done
 
 # lancia lo script python
 # imposta il livello di difficoltà a secondo dall'argomento passato allo script
@@ -27,5 +37,5 @@ lxpanel --profile LXDE-pi >/dev/null 2>&1 &
 
 # aspetta per user input
 echo ""
-echo "Programma terminato, premi invio per continuare"
+echo "Programma terminato, premi invio per continuare."
 read

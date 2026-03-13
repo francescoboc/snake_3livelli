@@ -620,7 +620,7 @@ class Snake:
             self.sound_proximity.set_volume(0.5)
 
         # load the food image 
-        self.food_image = pygame.image.load('img/apple.png')
+        self.food_image = pygame.image.load('img/apple.png').convert_alpha()
 
         # resize the image to match the cell size
         self.food_image = pygame.transform.scale(self.food_image, (self.cell_size, self.cell_size))

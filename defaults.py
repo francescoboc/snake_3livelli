@@ -4,7 +4,7 @@ snake_speed = 8
 
 # game parameters
 periodic = True
-action_mode = 3
+action_mode = 4
 rand_init_body_length = False
 rand_init_direction = False
 

@@ -139,8 +139,8 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         # take action from policy or from pressed keys (interactive mode)
         if policy is None:
             # action, escape_pressed = read_keys()
-            action, _ = read_buttons()
-            # action, _ = read_joystick(joystick, snake.direction)
+            # action, _ = read_buttons()
+            action, _ = read_joystick()
         else:
             action = policy[state]
             escape_pressed = read_esc()
@@ -338,7 +338,7 @@ def human_policy_vs_ai(policies, team_names, shared_vars, seed=None, color_schem
             os.fsync(csvfile.fileno())
 
     # display winner on a new sindow
-    display_winner(winner_score, winner_name, duration=7.5)
+    display_winner(winner_score, winner_name, duration=6)
 
     # signal all games to close
     winner_display_event.set()
@@ -464,7 +464,7 @@ def calculate_size_and_positions(n_teams, box_size):
 #     return cell_size, window_positions
 
 # version for rotated screen
-def display_winner(score, team_name, duration=7.5):
+def display_winner(score, team_name, duration=6):
     # initialize pygame display and font modules
     pygame.display.init()
     pygame.font.init()
