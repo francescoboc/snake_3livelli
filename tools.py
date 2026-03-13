@@ -66,52 +66,51 @@ compass_dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 prox_values = ['', 'f', 'l', 'r', 'fl', 'fr', 'lr', 'flr']
 
 # initial direction and size of the snake
-init_direction = 'UP' 
+init_direction = 'RIGHT' 
 init_size = 6
 
 # initialize a global deque to store key presses
 key_queue = deque(maxlen=3)
 
 # joystick button and axis ids
-button_id = 0
 axh_id = 0
 axv_id = 1
 
+# case for 1 button + joystick
+button_id = 0
+
+# case for 2 buttons (left, right)
 button_left_id = 0
 button_right_id = 1
 
-# # check for joystick events
+# check for joystick events and get the next action from to the queue
 def read_joystick():
-
     button_pressed = False
 
+    # process events and queue key presses
     for event in pygame.event.get():
-
         if event.type == pygame.JOYBUTTONDOWN:
             if event.button == button_id:
                 button_pressed = True
-
         elif event.type == pygame.JOYAXISMOTION:
-
             if event.axis == axh_id:
                 if event.value < -0.5:
                     key_queue.append('RIGHT')
                 elif event.value > 0.5:
                     key_queue.append('LEFT')
-
             elif event.axis == axv_id:
                 if event.value < -0.5:
                     key_queue.append('DOWN')
                 elif event.value > 0.5:
                     key_queue.append('UP')
 
-    if key_queue:
-        action = key_queue.popleft()
-    else:
-        action = 'NO_TURN'
+    # get the next action from the queue, or return 'NO_TURN' if empty
+    if key_queue: action = key_queue.popleft()
+    else: action = 'NO_TURN'
 
     return action, button_pressed
 
+# same thing but with 2 buttons
 def read_buttons():
     button_pressed = False
     for event in pygame.event.get():
@@ -122,18 +121,15 @@ def read_buttons():
             elif event.button == button_right_id:
                 key_queue.append('RIGHT')
 
-    if key_queue:
-        action = key_queue.popleft()
-    else:
-        action = 'NO_TURN'
+    if key_queue: action = key_queue.popleft()
+    else: action = 'NO_TURN'
 
     return action, button_pressed
 
-# check for user keypresses and get the next action from to the queue
+# same thing but for keyboard keypresses
 def read_keys():
     escape_pressed = False
 
-    # process events and queue key presses
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -147,7 +143,6 @@ def read_keys():
             elif event.key == pygame.K_ESCAPE:
                 escape_pressed = True
 
-    # get the next action from the queue, or return 'NO_TURN' if empty
     if key_queue: action = key_queue.popleft()
     else: action = 'NO_TURN'
 

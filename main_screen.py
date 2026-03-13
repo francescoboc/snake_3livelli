@@ -86,8 +86,7 @@ def start_screen_loop():
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             # show results with a pie chart
-            draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, 
-                           human_color, ai_color, draw_color, duration=45)
+            draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, human_color, ai_color, draw_color, duration=40)
 
         # redraw the background
         screen.blit(bg_image, (0, 0))
