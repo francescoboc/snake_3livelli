@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
- ruota lo schermo
+ # ruota lo schermo
 xrandr --output HDMI-1 --rotate left
 xrandr --output HDMI-2 --rotate left
 
- chiudi lxpanel (la taskbar in alto)
+ # chiudi lxpanel (la taskbar in alto)
 pkill lxpanel
 
 # nascondi cursore
@@ -20,7 +20,7 @@ for i in {1..10}; do
         git pull
         break
     fi
-    sleep 2
+    sleep 3
 done
 
 # lancia lo script python
