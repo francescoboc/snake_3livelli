@@ -111,9 +111,6 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
         pygame.joystick.init()
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
-        check_inactivity = False 
-    else:
-        check_inactivity = False
 
     # create snake game object
     snake = Snake(action_mode, state_mode, cell_size, box_size, snake_speed, periodic, 
@@ -145,7 +142,7 @@ def run_snake_game_with_barrier(policy, team_name, window_position, cell_size, s
             action = policy[state]
             escape_pressed = read_esc()
         snake.action = action
-        next_state, reward, terminated, truncated = snake.step(action, check_inactivity)
+        next_state, reward, terminated, truncated = snake.step(action)
         if terminated or truncated:
             # if the player is human (no policy provided), signal that the player lost
             if policy is None and human_lost_event is not None:

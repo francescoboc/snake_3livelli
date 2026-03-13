@@ -169,8 +169,8 @@ def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, hum
     pressed_once = False
 
     while True:
-        # _, button_pressed = read_joystick(joystick)
-        _, button_pressed = read_buttons()
+        _, button_pressed = read_joystick()
+        # _, button_pressed = read_buttons()
 
         if button_pressed:
             pressed_once = True
@@ -185,8 +185,8 @@ def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, hum
     if pressed_once:
         release_start = time.time()
         while True:
-            # _, button_pressed = read_joystick(joystick)
-            _, button_pressed = read_buttons()
+            _, button_pressed = read_joystick()
+            # _, button_pressed = read_buttons()
             if not button_pressed:
                 break
             if time.time() - release_start > 0.5:
