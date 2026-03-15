@@ -27,13 +27,19 @@ done
 # imposta il livello di difficoltà a secondo dall'argomento passato allo script
 LEVEL=${1:-medium}   # livello di default = medium
 python "main_screen.py" --level "$LEVEL"
+EXIT_CODE=$?
+
+# chiudi lxpanel solo se il programma è partito e terminato normalmente
+if [ $EXIT_CODE -eq 0 ]; then
+    pkill lxpanel
+fi
 
 # # riporta lo schermo in orizzontale
 # xrandr --output HDMI-1 --rotate normal
 
-# rilancia lxpanel
-# lxpanel --profile LXDE-pi &
-lxpanel --profile LXDE-pi >/dev/null 2>&1 &
+# # rilancia lxpanel
+# # lxpanel --profile LXDE-pi &
+# lxpanel --profile LXDE-pi >/dev/null 2>&1 &
 
 # aspetta per user input
 echo ""
