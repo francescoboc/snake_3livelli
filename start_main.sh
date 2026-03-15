@@ -4,9 +4,6 @@
 xrandr --output HDMI-1 --rotate left
 xrandr --output HDMI-2 --rotate left
 
- # chiudi lxpanel (la taskbar in alto)
-pkill lxpanel
-
 # nascondi cursore
 unclutter -idle 0 &
 
@@ -36,10 +33,6 @@ fi
 
 # # riporta lo schermo in orizzontale
 # xrandr --output HDMI-1 --rotate normal
-
-# # rilancia lxpanel
-# # lxpanel --profile LXDE-pi &
-# lxpanel --profile LXDE-pi >/dev/null 2>&1 &
 
 # aspetta per user input
 echo ""

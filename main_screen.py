@@ -63,6 +63,9 @@ def start_screen_loop():
     human_color = green
     draw_color = grey
 
+    # if pygame was initialised with no problems, kill lxpanel
+    subprocess.run(['pkill', 'lxpanel'])
+
     while True:
         # _, start_pressed = read_joystick(joystick)
         _, start_pressed = read_buttons()
