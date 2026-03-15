@@ -47,6 +47,9 @@ def start_screen_loop():
     bg_image = pygame.image.load("sfondo_snake.jpg")
     bg_image = pygame.transform.scale(bg_image, (WIDTH, HEIGHT))
 
+    # if pygame was initialised with no problems, kill lxpanel
+    subprocess.run(['pkill', 'lxpanel'])
+
     # parse argument to set level of AI
     args = parse_args()
     level = args.level
@@ -63,12 +66,9 @@ def start_screen_loop():
     human_color = green
     draw_color = grey
 
-    # if pygame was initialised with no problems, kill lxpanel
-    subprocess.run(['pkill', 'lxpanel'])
-
     while True:
-        # _, start_pressed = read_joystick(joystick)
-        _, start_pressed = read_buttons()
+        _, start_pressed = read_joystick()
+        # _, start_pressed = read_buttons()
 
         if start_pressed:
             # blackout the screen
