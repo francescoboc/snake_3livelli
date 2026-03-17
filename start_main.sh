@@ -15,10 +15,19 @@ for i in {1..10}; do
     if ping -c 1 -W 1 github.com >/dev/null 2>&1; then
         echo "Controllo aggiornamenti..."
         git pull
+        sync
         break
     fi
     sleep 3
 done
+
+# reset dei punteggi se presente la flag
+if [ -f RESET_SCORES ]; then
+    rm -f scores.csv
+    sync
+    echo "Punteggi resettati."
+    sleep 3
+fi
 
 # lancia lo script python
 # imposta il livello di difficoltà a secondo dall'argomento passato allo script
