@@ -1,6 +1,6 @@
 from tools import *
 
-def draw_pie_chart(screen, joystick, WIDTH, HEIGHT, scores_human, scores_ai, human_color, ai_color, draw_color, duration):
+def draw_pie_chart(screen, WIDTH, HEIGHT, scores_human, scores_ai, human_color, ai_color, draw_color, duration):
 
     # font sizes
     FONT_TITLE = pygame.font.Font(FONT_PATH, HEIGHT//15)

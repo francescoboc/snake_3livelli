@@ -80,7 +80,8 @@ def start_screen_loop():
             # subprocess.run(['python', 'human_vs_ai.py', '--level', level])
 
             # read scores from csv file
-            scores_human, scores_ai = read_scores()
+            try: scores_human, scores_ai = read_scores()
+            except: scores_human, scores_ai = [0], [0]
 
             # get id of pygame window and use xdotool to regain focus
             pygame.time.wait(150)

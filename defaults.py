@@ -17,5 +17,3 @@ show_state = False
 show_actions = False
 sound_effects = True
 countdown_seconds = 5
-
-# questa è una prova per vedere se il testo resta salvato anche dopo lo spegnimento improvviso sul raspberry!!
